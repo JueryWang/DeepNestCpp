@@ -51,6 +51,9 @@ namespace DeepNestCpp
 	void DxfReader::addArc(const DL_ArcData& data)
 	{
 	}
+	void DxfReader::addEllipse(const DL_EllipseData& data)
+	{
+	}
 	void DxfReader::addCircle(const DL_CircleData& data)
 	{
 	}

@@ -28,6 +28,7 @@ namespace DeepNestCpp
 			virtual void addXLine(const DL_XLineData& data);
 			virtual void addRay(const DL_RayData& data);
 			virtual void addArc(const DL_ArcData& data);
+			virtual void addEllipse(const DL_EllipseData& data);
 			virtual void addCircle(const DL_CircleData& data);
 			virtual void addPolyline(const DL_PolylineData& data);
 			virtual void addVertex(const DL_VertexData& data);

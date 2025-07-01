@@ -59,7 +59,7 @@ namespace DeepNestCpp
             bool isSelected;
     };
 
-    class Point2D : Entity{
+    class Point2D : public Entity{
         public:
             Point2D(glm::vec3 point);
             ~Point2D();
@@ -73,7 +73,7 @@ namespace DeepNestCpp
             glm::vec3 point;
     };
 
-    class Line2D : Entity{
+    class Line2D : public Entity{
         public:
             Line2D(glm::vec3 start, glm::vec3 end);
             ~Line2D();
@@ -88,7 +88,7 @@ namespace DeepNestCpp
             glm::vec3 end;
     };
 
-    class Arc2D : Entity{
+    class Arc2D : public Entity{
         public:
             Arc2D(glm::vec3 center, float radius, float startAngle, float endAngle);
             ~Arc2D();
@@ -110,7 +110,7 @@ namespace DeepNestCpp
             std::vector<glm::vec3> arcSamples;
     };
 
-    class Circle2D : Entity{
+    class Circle2D : public Entity{
         public:
             Circle2D(glm::vec3 center, float radius);
             ~Circle2D();
@@ -128,7 +128,7 @@ namespace DeepNestCpp
             float radius;
     };
 
-    class Ellipse2D : Entity{
+    class Ellipse2D : public Entity{
         public:
             Ellipse2D(glm::vec3 center, float radiusX, float radiusY);
             ~Ellipse2D();
@@ -146,7 +146,7 @@ namespace DeepNestCpp
             float radiusY;
     };
 
-    class Polyline2D : Entity{
+    class Polyline2D : public Entity{
         public:
             Polyline2D(const std::vector<glm::vec3>& points,bool isClosed);
             ~Polyline2D();
@@ -162,9 +162,9 @@ namespace DeepNestCpp
             bool isClosed;
     };
 
-    class Spline2D : Entity{
+    class Spline2D : public Entity{
         public:
-            Spline2D(const std::vector<glm::vec3>& controlPoints);
+            Spline2D(const std::vector<glm::vec3>& controlPoints, const std::vector<float> knots);
             ~Spline2D();
             virtual EntityType GetType() const override { return EntityType::Spline; }
             virtual void Paint() override;
@@ -178,6 +178,7 @@ namespace DeepNestCpp
             GLuint vbo_cntl;
             std::vector<glm::vec3> controlPoints;
             std::vector<glm::vec3> splineSamples;
+            std::vector<float> knots;
     };
 
     class EntCompound

@@ -5,19 +5,21 @@
 #include <QWidget>
 #include <vector>
 #include "../lib/OGL/glm/glm.hpp"
-#include "../lib/OGL/GLFW/glfw3.h"
-#include "DrawEntity.h"
-#include "OCS.h"
+#include "../lib/OGL/GLFW/glfw3.h"=
 #include "Shader.h"
 
 namespace DeepNestCpp
 {
+    class Entity;
+    class OCS;
+
     class Canvas : QWindow
     {
         public:
             Canvas(int width,int height,bool isMainCanvas);
             ~Canvas();
             
+            void addEntity(Entity* ent);
             void Paint();
             void UpdateOCS();
 
@@ -34,7 +36,8 @@ namespace DeepNestCpp
             static Shader drawTickerTextShader;
             OCS* ocsSys = nullptr;
             QPoint lastMousePos;
-            EntCompound* part;
+            std::vector<Entity*> entities;
+            std::vector<EntCompound*> parts;
             bool firstResize;
             bool isDragging;
             bool isMainCanvas;

@@ -308,7 +308,7 @@ namespace DeepNestCpp
 
 	}
 
-	Spline2D::Spline2D(const std::vector<glm::vec3>& controlPoints) : controlPoints(controlPoints)
+	Spline2D::Spline2D(const std::vector<glm::vec3>& controlPoints, const std::vector<float> knots) : controlPoints(controlPoints),knots(knots)
 	{
 		GenerateSplineSamplePoints(controlPoints,splineSamples);
 
@@ -362,8 +362,6 @@ namespace DeepNestCpp
 		
 		delete aabb;
 		aabb = nullptr;
-
-		std::vector<float> knots = MathUitls::GenerateClampedKnots(controlPoints.size(),3);
 
 		for(float t = 0.f; t<=1.0f;t+=0.01f)
 		{

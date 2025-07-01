@@ -1,4 +1,6 @@
 #include "Canvas.h"
+#include "DrawEntity.h"
+#include "OCS.h"
 #include <QMouseEvent>
 
 namespace DeepNestCpp
@@ -11,6 +13,7 @@ namespace DeepNestCpp
     {
         firstResize = true;
         window = glfwCreateWindow(width,height,"",NULL,NULL);
+        
         this->resize(width, height);
         glfwMakeContextCurrent(window);
     }
@@ -18,6 +21,11 @@ namespace DeepNestCpp
     Canvas::~Canvas()
     {
 
+    }
+
+    void Canvas::addEntity(Entity* ent)
+    {
+        entities.push_back(ent);
     }
 
     void Canvas::Paint()
