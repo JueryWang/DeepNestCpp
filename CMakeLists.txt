@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(DxfViewer)
+project(DeepNestCpp)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -10,13 +10,19 @@ include_directories(include)
 
 file(GLOB SOURCES "src/*.cpp")
 
+set(BOOST_ROOT "D:/3rdLibrary/boost_1_82_0")
+find_package(Boost REQUIRED)
 # 修正1：正确的find_package语法
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Core Gui Widgets REQUIRED)
+find_package(Boost REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui Widgets)
 
 # 修正2：正确的变量引用方式
 include_directories(${Qt${QT_VERSION_MAJOR}_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/OGL)
+include_directories(${Boost_INCLUDE_DIRS})
+message("Boost_INCLUDE_DIRS = ${Boost_INCLUDE_DIRS}")
+
 add_compile_options(${Qt${QT_VERSION_MAJOR}_EXECUTABLE_COMPILE_FLAGS})
 
 set(OPENGL_LIBS
@@ -29,7 +35,7 @@ set(OPENGL_LIBS
 file(GLOB HEADERS src/*.h)
 file(GLOB SOURCES src/*.cpp)
 
-add_executable(DxfViewer 
+add_executable(${PROJECT_NAME}
         ${HEADERS}
         ${SOURCES})
 
