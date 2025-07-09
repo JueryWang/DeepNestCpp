@@ -10,7 +10,7 @@ include_directories(include)
 
 file(GLOB SOURCES "src/*.cpp")
 
-set(BOOST_ROOT "D:/3rdLibrary/boost_1_82_0")
+set(BOOST_ROOT "E:/boost_1_82_0")
 find_package(Boost REQUIRED)
 # 修正1：正确的find_package语法
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Core Gui Widgets REQUIRED)
