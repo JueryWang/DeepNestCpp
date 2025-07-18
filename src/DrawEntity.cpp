@@ -51,6 +51,15 @@ namespace DeepNestCpp
 		point += reflect;
 	}
 
+	void Point2D::SetParameter(int paramCount, ...)
+	{
+	}
+
+	void Point2D::ToNcInstruction()
+	{
+
+	}
+
 
 
 	Line2D::Line2D(glm::vec3 start, glm::vec3 end) : start(start),end(end)
@@ -94,6 +103,14 @@ namespace DeepNestCpp
 	void Line2D::Mirror(glm::vec3 center)
 	{
 
+	}
+
+	void Line2D::SetParameter(int paramCount, ...)
+	{
+	}
+
+	void Line2D::ToNcInstruction()
+	{
 	}
 
 
@@ -165,6 +182,14 @@ namespace DeepNestCpp
 		
 	}
 
+	void Arc2D::SetParameter(int paramCount, ...)
+	{
+	}
+
+	void Arc2D::ToNcInstruction()
+	{
+	}
+
 
 	Circle2D::Circle2D(glm::vec3 center, float radius) : center(center),radius(radius)
 	{
@@ -199,6 +224,14 @@ namespace DeepNestCpp
 	void Circle2D::Mirror(glm::vec3 center)
 	{
 
+	}
+
+	void Circle2D::SetParameter(int paramCount, ...)
+	{
+	}
+
+	void Circle2D::ToNcInstruction()
+	{
 	}
 
 	void Circle2D::GenerateCircleSamplePoints(const glm::vec3& center,float radius,int stepAngle,std::vector<glm::vec3> &samples)
@@ -249,6 +282,14 @@ namespace DeepNestCpp
 	{
 	}
 	void Ellipse2D::Mirror(glm::vec3 center)
+	{
+	}
+
+	void Ellipse2D::SetParameter(int paramCount, ...)
+	{
+	}
+
+	void Ellipse2D::ToNcInstruction()
 	{
 	}
 
@@ -308,6 +349,14 @@ namespace DeepNestCpp
 
 	}
 
+	void Polyline2D::SetParameter(int paramCount, ...)
+	{
+	}
+
+	void Polyline2D::ToNcInstruction()
+	{
+	}
+
 	Spline2D::Spline2D(const std::vector<glm::vec3>& controlPoints, const std::vector<float> knots) : controlPoints(controlPoints),knots(knots)
 	{
 		GenerateSplineSamplePoints(controlPoints,splineSamples);
@@ -355,6 +404,14 @@ namespace DeepNestCpp
 
 	}
 
+	void Spline2D::SetParameter(int paramCount, ...)
+	{
+	}
+
+	void Spline2D::ToNcInstruction()
+	{
+	}
+
     void Spline2D::GenerateSplineSamplePoints(const std::vector<glm::vec3>& controlPoints,std::vector<glm::vec3> &samples)
 	{
 		if(samples.size() != 0)
@@ -365,7 +422,7 @@ namespace DeepNestCpp
 
 		for(float t = 0.f; t<=1.0f;t+=0.01f)
 		{
-			glm::vec3 samplePoint = MathUitls::CalculateBSpline(controlPoints,knots,3,t);
+			glm::vec3 samplePoint = MathUtils::CalculateBSpline(controlPoints,knots,3,t);
 			samples.push_back(samplePoint);
 			if(aabb == nullptr)
 				aabb = new AABB(samplePoint,samplePoint);

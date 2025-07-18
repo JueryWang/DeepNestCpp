@@ -12,12 +12,17 @@ file(GLOB SOURCES "src/*.cpp")
 
 set(BOOST_ROOT "D:/3rdLibrary/boost_1_82_0")
 find_package(Boost REQUIRED)
-# 修正1：正确的find_package语法
+
+set(GMP_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/CGAL-6.0.1/auxiliary/gmp/include")
+set(GMP_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/lib/CGAL-6.0.1/auxiliary/gmp/lib")
+set(MPFR_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/CGAL-6.0.1/auxiliary/gmp/include")
+set(MPFR_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/lib/CGAL-6.0.1/auxiliary/gmp/lib")
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Core Gui Widgets REQUIRED)
 find_package(Boost REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui Widgets)
+list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_SOURCE_DIR}/lib/CGAL-6.0.1/install/lib/cmake/CGAL")
 
-# 修正2：正确的变量引用方式
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/CGAL-6.0.1/include)
 include_directories(${Qt${QT_VERSION_MAJOR}_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/OGL)
 include_directories(${Boost_INCLUDE_DIRS})
@@ -39,7 +44,7 @@ add_executable(${PROJECT_NAME}
         ${HEADERS}
         ${SOURCES})
 
-# 修正3：正确的target_link_libraries语法
+
 target_link_libraries(${PROJECT_NAME} PRIVATE
     Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::Gui

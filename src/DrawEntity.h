@@ -27,6 +27,8 @@ namespace DeepNestCpp
             virtual void Move(glm::vec3 offset) = 0;
             virtual void Rotate(glm::vec3 center,float angle) = 0;
             virtual void Mirror(glm::vec3 center) = 0;
+            virtual void SetParameter(int paramCount, ...) = 0;
+            virtual void ToNcInstruction() = 0;
 
             virtual ~Entity()
             {
@@ -68,6 +70,8 @@ namespace DeepNestCpp
             virtual void Move(glm::vec3 offset) override;
             virtual void Rotate(glm::vec3 center, float angle) override;
             virtual void Mirror(glm::vec3 center) override;
+            virtual void SetParameter(int paramCount, ...) override;
+            virtual void ToNcInstruction() override;
 
         private:
             glm::vec3 point;
@@ -82,6 +86,8 @@ namespace DeepNestCpp
             virtual void Move(glm::vec3 offset) override;
             virtual void Rotate(glm::vec3 center, float angle) override;
             virtual void Mirror(glm::vec3 center) override;
+            virtual void SetParameter(int paramCount, ...) override;
+            virtual void ToNcInstruction() override;
 
         private:
             glm::vec3 start;
@@ -97,6 +103,8 @@ namespace DeepNestCpp
             virtual void Move(glm::vec3 offset) override;
             virtual void Rotate(glm::vec3 center, float angle) override;
             virtual void Mirror(glm::vec3 center) override;
+            virtual void SetParameter(int paramCount, ...) override;
+            virtual void ToNcInstruction() override;
 
             void GenerateArcSamples(float startAngle,float endAngle,const glm::vec3& center,std::vector<glm::vec3>& samples);
 
@@ -119,6 +127,8 @@ namespace DeepNestCpp
             virtual void Move(glm::vec3 offset) override;
             virtual void Rotate(glm::vec3 center, float angle) override;
             virtual void Mirror(glm::vec3 center) override;
+            virtual void SetParameter(int paramCount, ...) override;
+            virtual void ToNcInstruction() override;
 
             void GenerateCircleSamplePoints(const glm::vec3& center,float radius,int stepAngle,std::vector<glm::vec3> &samples);
 
@@ -137,6 +147,8 @@ namespace DeepNestCpp
             virtual void Move(glm::vec3 offset) override;
             virtual void Rotate(glm::vec3 center, float angle) override;
             virtual void Mirror(glm::vec3 center) override;
+            virtual void SetParameter(int paramCount, ...) override;
+            virtual void ToNcInstruction() override;
 
             void GenerateEllipseSamplePoints(glm::vec3 center,float radiusX,float radiusY,int stepAngle,std::vector<glm::vec3>& samples);
         private:
@@ -155,6 +167,8 @@ namespace DeepNestCpp
             virtual void Move(glm::vec3 offset) override;
             virtual void Rotate(glm::vec3 center, float angle) override;
             virtual void Mirror(glm::vec3 center) override;
+            virtual void SetParameter(int paramCount, ...) override;
+            virtual void ToNcInstruction() override;
 
         private:
             std::vector<glm::vec3> nodes;
@@ -171,6 +185,8 @@ namespace DeepNestCpp
             virtual void Move(glm::vec3 offset) override;
             virtual void Rotate(glm::vec3 center, float angle) override;
             virtual void Mirror(glm::vec3 center) override;
+            virtual void SetParameter(int paramCount, ...) override;
+            virtual void ToNcInstruction() override;
 
             void GenerateSplineSamplePoints(const std::vector<glm::vec3>& controlPoints,std::vector<glm::vec3> &samples);
         private:
