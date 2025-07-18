@@ -1,5 +1,7 @@
 #pragma once
 #include <boost/polygon/polygon.hpp>
+#include <boost/polygon/polygon_traits.hpp>
+#include <boost/polygon/polygon_with_holes_data.hpp>
 #include <string>
 #include <iostream>
 #include <sstream>
@@ -8,6 +10,7 @@
 typedef boost::polygon::point_data<int> point;
 typedef boost::polygon::polygon_set_data<int> polygon_set;
 typedef boost::polygon::polygon_with_holes_data<int> polygon;
+typedef boost::polygon::rectangle_data<int> Rectangle;
 typedef std::pair<point, point> edge;
 using namespace boost::polygon::operators;
 
@@ -91,9 +94,130 @@ void convolve_two_polygon_sets(polygon_set& result, const polygon_set& a, const 
     }
 }
 
-std::vector<polygon> calculateNFP(const polygon& A,bool isolate, const std::vector<polygon>& A_holes, const polygon& B, const std::vector<polygon>& B_holes)
+double inputscale;
+
+polygon_set calculateNFP(polygon& A,bool isolate, polygon& B,std::vector<polygon>& children)
 {
     polygon_set a, b, c;
     std::vector<polygon> polys;
     std::vector<point> pts;
+
+    unsigned int len = A.size();
+    Rectangle boundingBoxA;
+    boost::polygon::extents(boundingBoxA, A);
+    double Aminx = boost::polygon::xl(boundingBoxA);
+    double Aminy = boost::polygon::yl(boundingBoxA);
+    double Amaxx = boost::polygon::xh(boundingBoxA);
+    double Amaxy = boost::polygon::yh(boundingBoxA);
+
+    Rectangle boundingBoxB;
+    boost::polygon::extents(boundingBoxB, B);
+    double Bminx = boost::polygon::xl(boundingBoxB);
+    double Bminy = boost::polygon::yl(boundingBoxB);
+    double Bmaxx = boost::polygon::xh(boundingBoxB);
+    double Bmaxy = boost::polygon::yh(boundingBoxB);
+
+    double Cmaxx = Amaxx + Bmaxx;
+    double Cminx = Aminx + Bminx;
+    double Cmaxy = Amaxy + Bmaxy;
+    double Cminy = Aminy + Bminy;
+
+    double maxxAbs = (std::max)(Cmaxx, std::fabs(Cminx));
+    double maxyAbs = (std::max)(Cmaxy, std::fabs(Cminy));
+
+    double maxda = (std::max)(maxxAbs, maxyAbs);
+    int maxi = std::numeric_limits<int>::max();
+
+    if (maxda > 1) {
+        maxda = 1;
+    }
+
+    inputscale = (0.1f * (double)(maxi)) / maxda;
+
+    for (const auto& pt : A)
+    {
+        int x = (int)(inputscale * (double)pt.x());
+        int y = (int)(inputscale * (double)pt.y());
+
+        pts.push_back(point(x, y));
+    }
+    polygon poly;
+    boost::polygon::set_points(poly, pts.begin(), pts.end());
+    a += poly;
+
+    //substract holes from a here
+    for (const auto& hole : children)
+    {
+        pts.clear();
+        for (const auto& pt : hole)
+        {
+            int x = (int)(inputscale * pt.x());
+            int y = (int)(inputscale * pt.y());
+            pts.push_back(point(x, y));
+        }
+        boost::polygon::set_points(poly, pts.begin(), pts.end());
+        a -= poly;
+    }
+
+    pts.clear();
+    len = B.size();
+
+    double xshift = 0;
+    double yshift = 0;
+
+    for (unsigned int i = 0; i < len; i++)
+    {
+        auto pt = *(B.begin() + i);
+        int x = -(int)(inputscale * (double)pt.x());
+        int y = -(int)(inputscale * (double)pt.y());
+        pts.push_back(point(x, y));
+
+        if (i == 0) {
+            xshift = pt.x();
+            yshift = pt.y();
+        }
+    }
+
+    boost::polygon::set_points(poly, pts.begin(), pts.end());
+    b += poly;
+
+    polys.clear();
+
+    convolve_two_polygon_sets(c, a, b);
+    c.get(polys);
+
+
+    std::vector<polygon> result_list;
+
+    for (unsigned int i = 0; i < polys.size(); ++i)
+    {
+        std::vector<point> pointlist;
+        int j = 0;
+
+        for (auto itr = polys[i].begin(); itr != polys[i].end(); ++itr)
+        {
+            pointlist.push_back(point((*itr).get(boost::polygon::HORIZONTAL)/inputscale + xshift,(*itr).get(boost::polygon::VERTICAL)/inputscale + yshift));
+            j++;
+        }
+        namespace bp = boost::polygon;
+        std::vector<polygon> children;
+        int k = 0;
+        for (auto itrh = begin_holes(polys[i]); itrh != end_holes(polys[i]); ++itrh)
+        {
+            polygon child;
+            int z = 0;
+
+            std::vector<point> points;
+            for (auto itr2 = (*itrh).begin(); itr2 != (*itrh).end(); ++itr2)
+            {
+                points.push_back(point((*itr2).get(boost::polygon::HORIZONTAL) / inputscale + xshift, (*itr2).get(boost::polygon::VERTICAL) / inputscale + yshift));
+                z++;
+            }
+            bp::set_points(child,points.begin(),points.end());
+            children.push_back(child);
+        }
+    }
+    c.insert(children, true);
+
+    return c;
 }

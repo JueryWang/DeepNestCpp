@@ -10,7 +10,7 @@ include_directories(include)
 
 file(GLOB SOURCES "src/*.cpp")
 
-set(BOOST_ROOT "D:/3rdLibrary/boost_1_82_0")
+set(BOOST_ROOT "E:/boost_1_82_0")
 find_package(Boost REQUIRED)
 
 set(GMP_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/CGAL-6.0.1/auxiliary/gmp/include")
