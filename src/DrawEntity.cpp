@@ -1,6 +1,7 @@
 #include "DrawEntity.h"
 #include "../lib/OGL/glm/gtc/type_ptr.hpp"
 #include "MathUtils.h"
+#include <stdarg.h>
 
 namespace DeepNestCpp
 {
@@ -8,17 +9,13 @@ namespace DeepNestCpp
 	Point2D::Point2D(glm::vec3 point)
 	{
 		this->point = point;
-		this->aabb = new AABB(point, point);
-		glGenVertexArrays(1, &vao);
-		glBindVertexArray(vao);
-
-		glGenBuffers(1, &vbo);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-
-		glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3), glm::value_ptr(point), GL_DYNAMIC_DRAW);
+		this->bbox = new AABB(point, point);
 
 		glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * sizeof(float), (void*)0);
 		glEnableVertexAttribArray(0);
+
+		cgalPath.push_back(Point(point.x,point.y));
+		bbox = new AABB(point, point);
 	}
 	Point2D::~Point2D()
 	{
@@ -26,6 +23,16 @@ namespace DeepNestCpp
 	}
 	void Point2D::Paint()
 	{
+		if(vao < 0 || vbo < 0)
+		{
+			glGenVertexArrays(1, &vao);
+			glBindVertexArray(vao);
+
+			glGenBuffers(1, &vbo);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+			glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3), glm::value_ptr(point), GL_STATIC_DRAW);
+		}
 		glBindVertexArray(vao);
 		glDrawArrays(GL_POINTS, 0, 1);
 	}
@@ -53,6 +60,24 @@ namespace DeepNestCpp
 
 	void Point2D::SetParameter(int paramCount, ...)
 	{
+		if (paramCount == 1)
+		{
+			va_list args;
+			point = va_arg(args, glm::vec3);
+			va_end(args);
+
+			if (vao > 0 && vbo > 0)
+			{
+				glBindVertexArray(vao);
+
+				glBindBuffer(GL_ARRAY_BUFFER, vbo);
+				glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3), &point, GL_STATIC_DRAW);
+			}
+
+			cgalPath.clear();
+			cgalPath.push_back(Point(point.x, point.y));
+			*bbox = AABB(point,point);
+		}
 	}
 
 	void Point2D::ToNcInstruction()
@@ -64,19 +89,10 @@ namespace DeepNestCpp
 
 	Line2D::Line2D(glm::vec3 start, glm::vec3 end) : start(start),end(end)
 	{
-		aabb = new AABB(start,end);
+		bbox = new AABB(start,end);
 
-		glGenVertexArrays(1,&vao);
-		glBindVertexArray(vao);
-
-		glGenBuffers(1,&vbo);
-		glBindBuffer(GL_ARRAY_BUFFER,vbo);
-		
-		glm::vec3 vertices[] = {start,end};
-		glBufferData(GL_ARRAY_BUFFER,2 * sizeof(glm::vec3),vertices,GL_DYNAMIC_DRAW);
-
-		glVertexAttribPointer(0,3,GL_FLOAT,false,sizeof(glm::vec3),(void*)0);
-		glEnableVertexAttribArray(0);
+		cgalPath.push_back(Point(start.x,start.y));
+		cgalPath.push_back(Point(end.x, end.y));
 	}
 
 	Line2D::~Line2D()
@@ -85,6 +101,21 @@ namespace DeepNestCpp
 	}
 	void Line2D::Paint()
 	{
+		if (vao < 0 || vbo < 0)
+		{
+			glGenVertexArrays(1, &vao);
+			glBindVertexArray(vao);
+
+			glGenBuffers(1, &vbo);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+			glm::vec3 vertices[] = { start,end };
+			glBufferData(GL_ARRAY_BUFFER, 2 * sizeof(glm::vec3), vertices, GL_STATIC_DRAW);
+
+			glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(glm::vec3), (void*)0);
+			glEnableVertexAttribArray(0);
+		}
+
 		glPointSize(1.0f);
 		glBindVertexArray(vao);
 		glDrawArrays(GL_LINES,0,2);
@@ -107,6 +138,25 @@ namespace DeepNestCpp
 
 	void Line2D::SetParameter(int paramCount, ...)
 	{
+		if (paramCount == 2)
+		{
+			va_list args;
+			start = va_arg(args,glm::vec3);
+			end = va_arg(args, glm::vec3);
+			*bbox = AABB(start,end);
+			area = 0;
+
+			if (vao > 0 && vbo > 0)
+			{
+				glBindVertexArray(vao);
+				glBindVertexArray(vbo);
+				glm::vec3 arrays[] = { start,end };
+				glBufferData(GL_ARRAY_BUFFER, 2*sizeof(glm::vec3), arrays, GL_STATIC_DRAW);
+			}
+			cgalPath.clear();
+			cgalPath.push_back(Point(start.x,start.y));
+			cgalPath.push_back(Point(end.x, end.y));
+		}
 	}
 
 	void Line2D::ToNcInstruction()
@@ -137,10 +187,15 @@ namespace DeepNestCpp
 		glGenBuffers(1,&vbo);
 		glBindBuffer(GL_ARRAY_BUFFER,vbo);
 
-		glBufferData(GL_ARRAY_BUFFER,3 * sizeof(glm::vec3),arcSamples.data(),GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER,3 * sizeof(glm::vec3),arcSamples.data(),GL_STATIC_DRAW);
 
 		glVertexAttribPointer(0,3,GL_FLOAT,false, sizeof(glm::vec3),(void*)0);
 		glEnableVertexAttribArray(0);
+
+		for (const glm::vec3& vec : arcSamples)
+		{
+			cgalPath.push_back(Point(vec.x,vec.y));
+		}
 	}
 	Arc2D::~Arc2D()
 	{
@@ -159,12 +214,25 @@ namespace DeepNestCpp
 
 			
 			samples.push_back(glm::vec3(center.x + x,center.y + y,0.0f));
-			aabb->Union(glm::vec3(center.x,center.y,0.0f));
+			bbox->Union(glm::vec3(center.x,center.y,0.0f));
 		}
 	}
 
 	void Arc2D::Paint()
 	{
+		if (vao < 0 || vbo < 0)
+		{
+			glGenBuffers(1, &vao);
+			glBindVertexArray(vao);
+
+			glGenBuffers(1, &vbo);
+			glBindBuffer(GL_ARRAY_BUFFER,vbo);
+
+			glBufferData(GL_ARRAY_BUFFER, arcSamples.size() * sizeof(glm::vec3), arcSamples.data(), GL_STATIC_DRAW);
+			
+			glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(glm::vec3), (void*)0);
+			glEnableVertexAttribArray(0);
+		}
 		glLineWidth(1);
 		glBindVertexArray(vao);
 		glDrawArrays(GL_LINE_STRIP,0,arcSamples.size());
@@ -184,6 +252,52 @@ namespace DeepNestCpp
 
 	void Arc2D::SetParameter(int paramCount, ...)
 	{
+		if (paramCount == 3)
+		{
+			arcSamples.clear();
+			cgalPath.clear();
+			
+			va_list args;
+			center = va_arg(args,glm::vec3);
+			startAngle = va_arg(args, float);
+			endAngle = va_arg(args, float);
+			radius = va_arg(args, float);
+			area = abs((startAngle - endAngle) * deg2Rad / (PI * radius));
+			start = glm::vec3(center.x + (float)cos(startAngle * deg2Rad),center.y + (float)sin(startAngle * deg2Rad),0.0f);
+			end = glm::vec3(center.x + (float)cos(endAngle * deg2Rad),center.y + (float)sin(endAngle * deg2Rad),0.0f);
+
+			*bbox = AABB(start, end);
+
+			glm::vec3 start = glm::vec3(start);
+			glm::vec3 end3d = glm::vec(end);
+
+			if (glm::cross(start,end).z < 0)
+			{
+				auto temp = start;
+				start = end;
+				end = temp;
+			}
+
+			if (startAngle > endAngle)
+			{
+				endAngle = endAngle + 360;
+			}
+
+			GenerateArcSamples(startAngle,endAngle,center,arcSamples);
+
+			if (vao > 0 && vbo > 0)
+			{
+				glBindVertexArray(vao);
+				
+				glBindBuffer(GL_ARRAY_BUFFER, vbo);
+				glBufferData(GL_ARRAY_BUFFER, arcSamples.size() * sizeof(glm::vec3), arcSamples.data(), GL_STATIC_DRAW);
+			}
+
+			for(const glm::vec3& p : arcSamples)
+			{
+				cgalPath.push_back(Point(p.x,p.y));
+			}
+		}
 	}
 
 	void Arc2D::ToNcInstruction()
@@ -193,18 +307,16 @@ namespace DeepNestCpp
 
 	Circle2D::Circle2D(glm::vec3 center, float radius) : center(center),radius(radius)
 	{
-		aabb = new AABB(glm::vec3(center.x - radius,center.y - radius,0.0f),glm::vec3(center.x + radius,center.y + radius,0.0f));
-		
-		glGenVertexArrays(1,&vao);
-		glBindVertexArray(vao);
+		bbox = new AABB(glm::vec3(center.x - radius,center.y - radius,0.0f),glm::vec3(center.x + radius,center.y + radius,0.0f));
+		GenerateCircleSamplePoints(center,radius,5,circleSamples);
+		area = 2 * (float)PI * radius;
 
-		glGenBuffers(1,&vbo);
-		glBindBuffer(GL_ARRAY_BUFFER,vbo);
-		
-		glBufferData(GL_ARRAY_BUFFER,circleSamples.size() * sizeof(glm::vec3),circleSamples.data(),GL_DYNAMIC_DRAW);
-		
-		glVertexAttribPointer(0,3,GL_FLOAT,false,sizeof(glm::vec3),(void*)0);
-		glEnableVertexAttribArray(0);
+		for (const glm::vec3& vec : circleSamples)
+		{
+			cgalPath.push_back(Point(vec.x, vec.y));
+		}
+
+		bbox = new AABB(glm::vec3(center.x - radius,center.y - radius,0.0f),glm::vec3(center.x + radius,center.y + radius,0.0f));
 	}
 	Circle2D::~Circle2D()
 	{
@@ -212,6 +324,20 @@ namespace DeepNestCpp
 
 	void Circle2D::Paint()
 	{
+		if (vao < 0 || vbo < 0)
+		{
+			glGenVertexArrays(1, &vao);
+			glBindVertexArray(vao);
+
+			glGenBuffers(1, &vbo);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+			GenerateCircleSamplePoints(center, radius, 5, circleSamples);
+			glBufferData(GL_ARRAY_BUFFER, circleSamples.size() * sizeof(glm::vec3), circleSamples.data(), GL_STATIC_DRAW);
+
+			glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(glm::vec3), (void*)0);
+			glEnableVertexAttribArray(0);
+		}
 		glBindVertexArray(vao);
 		glDrawArrays(GL_LINE_STRIP,0,circleSamples.size());
 	}
@@ -228,6 +354,32 @@ namespace DeepNestCpp
 
 	void Circle2D::SetParameter(int paramCount, ...)
 	{
+		if (paramCount == 2)
+		{
+			circleSamples.clear();
+			cgalPath.clear();
+
+			va_list args;
+			center = va_arg(args, glm::vec3);
+			radius = va_arg(args, float);
+			
+			GenerateCircleSamplePoints(center,radius,10,circleSamples);
+			area = 2 * (float)PI * radius;
+			*bbox = AABB(glm::vec3(center.x - radius,center.y - radius,1.0f),glm::vec3(center.x + radius,center.y + radius,1.0f));
+		
+			if (vao > 0 && vbo > 0)
+			{
+				glBindVertexArray(vao);
+
+				glBindBuffer(GL_ARRAY_BUFFER, vbo);
+				glBufferData(GL_ARRAY_BUFFER, circleSamples.size() * sizeof(glm::vec3), circleSamples.data(), GL_STATIC_DRAW);
+			}
+
+			for (const glm::vec3& vec : circleSamples)
+			{
+				cgalPath.push_back(Point(vec.x, vec.y));
+			}
+		}
 	}
 
 	void Circle2D::ToNcInstruction()
@@ -249,9 +401,9 @@ namespace DeepNestCpp
 	}
 
 
-	Ellipse2D::Ellipse2D(glm::vec3 center, float radiusX, float radiusY) : center(center),radiusX(radiusX),radiusY(radiusY)
+	Ellipse2D::Ellipse2D(glm::vec3 center, float radiusX, float radiusY) : center(center)
 	{
-		aabb = new AABB(glm::vec3(center.x - radiusX,center.y - radiusY,0.0),glm::vec3(center.x + radiusX,center.y + radiusX,0.0f));
+		bbox = new AABB(glm::vec3(center.x - radiusX,center.y - radiusY,0.0),glm::vec3(center.x + radiusX,center.y + radiusX,0.0f));
 	
 		GenerateEllipseSamplePoints(center,radiusX,radiusY,5,ellipseSamples);
 
@@ -261,7 +413,7 @@ namespace DeepNestCpp
 		glGenBuffers(1,&vbo);
 		glBindBuffer(GL_ARRAY_BUFFER,vbo);
 
-		glBufferData(GL_ARRAY_BUFFER,ellipseSamples.size() * sizeof(glm::vec3),ellipseSamples.data(),GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER,ellipseSamples.size() * sizeof(glm::vec3),ellipseSamples.data(),GL_STATIC_DRAW);
 		glVertexAttribPointer(0,3,GL_FLOAT,false,sizeof(glm::vec3),(void*)0);
 		glEnableVertexAttribArray(0);
 	}
@@ -309,31 +461,46 @@ namespace DeepNestCpp
 
 	Polyline2D::Polyline2D(const std::vector<glm::vec3>& points,bool isClosed) : nodes(points),isClosed(isClosed)
 	{
+		if (nodes[0] == *(nodes.end() - 1))
+			isClosed = true;
+
 		if(nodes.size() > 2)
 		{
-			aabb = new AABB(nodes[0],nodes[1]);
+			bbox = new AABB(nodes[0],nodes[1]);
 			for(int i = 2; i < nodes.size(); i++)
 			{
-				aabb->Union(nodes[i]);
+				bbox->Union(nodes[i]);
 			}
 		}
+		else
+		{
+			bbox = new AABB(nodes[0], nodes[0]);
+		}
 
-		glGenVertexArrays(1,&vao);
-		glBindVertexArray(vao);
-
-		glGenBuffers(1,&vbo);
-		glBindBuffer(GL_ARRAY_BUFFER,vbo);
-
-		glBufferData(GL_ARRAY_BUFFER,nodes.size() * sizeof(glm::vec3),nodes.data(),GL_DYNAMIC_DRAW);
-
-		glVertexAttribPointer(0,3,GL_FLOAT,false,sizeof(glm::vec3),(void*)0);
-		glEnableVertexAttribArray(0);
+		for (glm::vec3& p : nodes)
+		{
+			cgalPath.push_back(Point(p.x,p.y));
+		}
+		area = cgalPath.area();
 	}
 	Polyline2D::~Polyline2D()
 	{
 	}
 	void Polyline2D::Paint()
 	{
+		if (vao < 0 || vbo < 0)
+		{
+			glGenVertexArrays(1, &vao);
+			glBindVertexArray(vao);
+
+			glGenBuffers(1, &vbo);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+			glBufferData(GL_ARRAY_BUFFER, nodes.size() * sizeof(glm::vec3), nodes.data(), GL_STATIC_DRAW);
+
+			glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(glm::vec3), (void*)0);
+			glEnableVertexAttribArray(0);
+		}
 		glBindVertexArray(vao);
 		glDrawArrays(isClosed ? GL_LINE_LOOP : GL_LINE_STRIP,0,nodes.size());
 	}
@@ -351,9 +518,56 @@ namespace DeepNestCpp
 
 	void Polyline2D::SetParameter(int paramCount, ...)
 	{
+		if (paramCount == 2)
+		{
+			cgalPath.clear();
+
+			va_list args;
+			nodes = va_arg(args, std::vector<glm::vec3>);
+			isClosed = va_arg(args, bool);
+
+			if (vao > 0 && vbo > 0)
+			{
+				glBindVertexArray(vao);
+
+				glBindBuffer(GL_ARRAY_BUFFER, vbo);
+				glBufferData(GL_ARRAY_BUFFER, nodes.size() * sizeof(glm::vec3), nodes.data(), GL_STATIC_DRAW);
+			}
+
+			if (nodes.size() > 2)
+			{
+				*bbox = AABB(nodes[0],nodes[1]);
+				for (int i = 2; i < nodes.size(); i++)
+				{
+					bbox->Union(nodes[i]);
+				}
+			}
+			else
+			{
+				*bbox = AABB(nodes[0],nodes[0]);
+			}
+
+			for (glm::vec3& p : nodes)
+			{
+				cgalPath.push_back(Point(p.x, p.y));
+			}
+			area = cgalPath.area();
+		}
 	}
 
 	void Polyline2D::ToNcInstruction()
+	{
+	}
+
+	void Polyline2D::Offset(double delta)
+	{
+	}
+
+	void Polyline2D::Simplify(float epsilon)
+	{
+	}
+
+	void Polyline2D::Smooth(float epsilon)
 	{
 	}
 
@@ -367,7 +581,7 @@ namespace DeepNestCpp
 		glGenBuffers(1,&vbo);
 		glBindBuffer(GL_ARRAY_BUFFER,vbo);
 		
-		glBufferData(GL_ARRAY_BUFFER,splineSamples.size() * sizeof(glm::vec3),splineSamples.data(),GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER,splineSamples.size() * sizeof(glm::vec3),splineSamples.data(),GL_STATIC_DRAW);
 
 		glVertexAttribPointer(0,3,GL_FLOAT,false,sizeof(glm::vec3),(void*)0);
 		glEnableVertexAttribArray(0);
@@ -377,7 +591,7 @@ namespace DeepNestCpp
 
 		glGenVertexArrays(1,&vbo_cntl);
 		glBindBuffer(GL_ARRAY_BUFFER,vbo_cntl);
-		glBufferData(GL_ARRAY_BUFFER,controlPoints.size() * sizeof(glm::vec3),controlPoints.data(),GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER,controlPoints.size() * sizeof(glm::vec3),controlPoints.data(),GL_STATIC_DRAW);
 	
 		glVertexAttribPointer(0,3,GL_FLOAT,false,sizeof(glm::vec3),(void*)0);
 		glEnableVertexAttribArray(0);
@@ -417,17 +631,17 @@ namespace DeepNestCpp
 		if(samples.size() != 0)
 			samples.clear();
 		
-		delete aabb;
-		aabb = nullptr;
+		delete bbox;
+		bbox = nullptr;
 
 		for(float t = 0.f; t<=1.0f;t+=0.01f)
 		{
 			glm::vec3 samplePoint = MathUtils::CalculateBSpline(controlPoints,knots,3,t);
 			samples.push_back(samplePoint);
-			if(aabb == nullptr)
-				aabb = new AABB(samplePoint,samplePoint);
+			if(bbox == nullptr)
+				bbox = new AABB(samplePoint,samplePoint);
 			else
-				aabb->Union(samplePoint);
+				bbox->Union(samplePoint);
 		}
 	}
 }

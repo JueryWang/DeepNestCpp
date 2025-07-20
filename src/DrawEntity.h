@@ -1,8 +1,15 @@
 #pragma once
 #include "../lib/OGL/glad/glad.h"
-#include "AABB.h"
 #include "../lib/OGL/glm/glm.hpp"
+#include "AABB.h"
+#include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
+#include <CGAL/Polygon_2.h>
+#include <CGAL/draw_polygon_2.h>
 #include <vector>
+
+typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
+typedef CGAL::Polygon_2<K>                                  Polygon_2;
+typedef CGAL::Point_2<K>                                    Point;
 
 namespace DeepNestCpp
 {
@@ -44,7 +51,7 @@ namespace DeepNestCpp
                     vbo = 0;
                 }
 
-                delete aabb;
+                delete bbox;
             }
             
         protected:
@@ -52,9 +59,11 @@ namespace DeepNestCpp
             GLuint vao;
             GLuint vbo;
         public:
-            AABB* aabb;
+            AABB* bbox;
             std::vector<float> jointPoints;
             float jointLength;
+            double area;
+            Polygon_2 cgalPath;
 
             glm::vec3 startProcessLocation;
             glm::mat4 transformMatrix;
@@ -154,8 +163,7 @@ namespace DeepNestCpp
         private:
             std::vector<glm::vec3> ellipseSamples;
             glm::vec3 center;
-            float radiusX;
-            float radiusY;
+            float a,b,c;
     };
 
     class Polyline2D : public Entity{
@@ -169,6 +177,9 @@ namespace DeepNestCpp
             virtual void Mirror(glm::vec3 center) override;
             virtual void SetParameter(int paramCount, ...) override;
             virtual void ToNcInstruction() override;
+            void Offset(double delta);
+            void Simplify(float epsilon);
+            void Smooth(float epsilon);
 
         private:
             std::vector<glm::vec3> nodes;
