@@ -3,12 +3,15 @@
 #include "MathUtils.h"
 #include <stdarg.h>
 
+std::vector<glm::vec3> intermidatePolygon;
+
 namespace DeepNestCpp
 {
-
+	
 	Point2D::Point2D(glm::vec3 point)
 	{
 		this->point = point;
+		centroid = point;
 		this->bbox = new AABB(point, point);
 
 		glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * sizeof(float), (void*)0);
@@ -80,7 +83,7 @@ namespace DeepNestCpp
 		}
 	}
 
-	void Point2D::ToNcInstruction()
+	std::string Point2D::ToNcInstruction()
 	{
 
 	}
@@ -116,6 +119,9 @@ namespace DeepNestCpp
 			glEnableVertexAttribArray(0);
 		}
 
+		centroid = (start + end);
+		centroid /= 2;
+
 		glPointSize(1.0f);
 		glBindVertexArray(vao);
 		glDrawArrays(GL_LINES,0,2);
@@ -146,6 +152,9 @@ namespace DeepNestCpp
 			*bbox = AABB(start,end);
 			area = 0;
 
+			centroid = start + end;
+			centroid /= 2;
+
 			if (vao > 0 && vbo > 0)
 			{
 				glBindVertexArray(vao);
@@ -159,8 +168,13 @@ namespace DeepNestCpp
 		}
 	}
 
-	void Line2D::ToNcInstruction()
+	std::string Line2D::ToNcInstruction()
 	{
+		std::string s;
+		char buffer[100];
+		std::sprintf(buffer, "G1 X%f Y%f\r\n", end.x, end.y);
+		s += buffer;
+		return s;
 	}
 
 
@@ -192,10 +206,14 @@ namespace DeepNestCpp
 		glVertexAttribPointer(0,3,GL_FLOAT,false, sizeof(glm::vec3),(void*)0);
 		glEnableVertexAttribArray(0);
 
+		centroid = glm::vec3(0.0);
 		for (const glm::vec3& vec : arcSamples)
 		{
 			cgalPath.push_back(Point(vec.x,vec.y));
+			centroid += vec;
 		}
+
+		centroid /= arcSamples.size();
 	}
 	Arc2D::~Arc2D()
 	{
@@ -263,8 +281,8 @@ namespace DeepNestCpp
 			endAngle = va_arg(args, float);
 			radius = va_arg(args, float);
 			area = abs((startAngle - endAngle) * deg2Rad / (PI * radius));
-			start = glm::vec3(center.x + (float)cos(startAngle * deg2Rad),center.y + (float)sin(startAngle * deg2Rad),0.0f);
-			end = glm::vec3(center.x + (float)cos(endAngle * deg2Rad),center.y + (float)sin(endAngle * deg2Rad),0.0f);
+			start = glm::vec3(center.x + radius * (float)cos(startAngle * deg2Rad),center.y + radius * (float)sin(startAngle * deg2Rad),0.0f);
+			end = glm::vec3(center.x + radius * (float)cos(endAngle * deg2Rad),center.y + radius * (float)sin(endAngle * deg2Rad),0.0f);
 
 			*bbox = AABB(start, end);
 
@@ -293,15 +311,52 @@ namespace DeepNestCpp
 				glBufferData(GL_ARRAY_BUFFER, arcSamples.size() * sizeof(glm::vec3), arcSamples.data(), GL_STATIC_DRAW);
 			}
 
+			centroid = glm::vec3(0.0f);
 			for(const glm::vec3& p : arcSamples)
 			{
 				cgalPath.push_back(Point(p.x,p.y));
+				center += p;
 			}
+			center /= arcSamples.size();
 		}
 	}
 
-	void Arc2D::ToNcInstruction()
+	std::string Arc2D::ToNcInstruction()
 	{
+		std::string s = "";
+		GeomDirection dir = MathUtils::GetDirection(this->centroid, start, end);
+		float I = center.x - start.x;
+		float J = center.y - start.y;
+		char buffer[100];
+		std::sprintf(buffer,"G0 X%f Y%f\r\n",start.x,start.y);
+		s += buffer;
+		if (dir == GeomDirection::CCW)
+		{
+			if (abs(startAngle - endAngle) > 180.0f)
+			{
+				std::sprintf(buffer, "G2 X%f Y%f I%f J%f\r\n", end.x, end.y, I, J);
+				s += buffer;
+			}
+			else
+			{
+				std::sprintf(buffer, "G3 X%f Y%f I%f J%f\r\n", end.x, end.y, I, J);
+				s += buffer;
+			}
+		}
+		else
+		{
+			if (abs(startAngle - endAngle) > 180.0f)
+			{
+				std::sprintf(buffer, "G3 X%f Y%f I%f J%f\r\n", end.x, end.y, I, J);
+				s += buffer;
+			}
+			else
+			{
+				std::sprintf(buffer, "G2 X%f Y%f I%f J%f\r\n", end.x, end.y, I, J);
+				s += buffer;
+			}
+		}
+		return s;
 	}
 
 
@@ -311,10 +366,13 @@ namespace DeepNestCpp
 		GenerateCircleSamplePoints(center,radius,5,circleSamples);
 		area = 2 * (float)PI * radius;
 
+		centroid = glm::vec3(0.0f);
 		for (const glm::vec3& vec : circleSamples)
 		{
 			cgalPath.push_back(Point(vec.x, vec.y));
+			centroid += vec;
 		}
+		centroid /= circleSamples.size();
 
 		bbox = new AABB(glm::vec3(center.x - radius,center.y - radius,0.0f),glm::vec3(center.x + radius,center.y + radius,0.0f));
 	}
@@ -375,15 +433,29 @@ namespace DeepNestCpp
 				glBufferData(GL_ARRAY_BUFFER, circleSamples.size() * sizeof(glm::vec3), circleSamples.data(), GL_STATIC_DRAW);
 			}
 
+			centroid = glm::vec3(0.0f);
 			for (const glm::vec3& vec : circleSamples)
 			{
 				cgalPath.push_back(Point(vec.x, vec.y));
+				centroid += vec;
 			}
+			centroid /= circleSamples.size();
 		}
 	}
 
-	void Circle2D::ToNcInstruction()
+	std::string Circle2D::ToNcInstruction()
 	{
+		std::string s = "";
+		float I = radius;
+		float J = 0;
+		glm::vec3 start = center + glm::vec3(0, radius, 0.0f);
+		glm::vec3 end = center + glm::vec3(0, radius, 0.0f);
+		char buffer[100];
+		std::sprintf(buffer, "G0 X%f Y%f \r\n");
+		s += buffer;
+		std::sprintf(buffer,"G2 X%f Y%f \r\n");
+		s += buffer;
+		return s;
 	}
 
 	void Circle2D::GenerateCircleSamplePoints(const glm::vec3& center,float radius,int stepAngle,std::vector<glm::vec3> &samples)
@@ -441,7 +513,7 @@ namespace DeepNestCpp
 	{
 	}
 
-	void Ellipse2D::ToNcInstruction()
+	std::string Ellipse2D::ToNcInstruction()
 	{
 	}
 
@@ -477,10 +549,13 @@ namespace DeepNestCpp
 			bbox = new AABB(nodes[0], nodes[0]);
 		}
 
+		centroid = glm::vec3(0.0f);
 		for (glm::vec3& p : nodes)
 		{
 			cgalPath.push_back(Point(p.x,p.y));
+			centroid += p;
 		}
+		centroid /= nodes.size();
 		area = cgalPath.area();
 	}
 	Polyline2D::~Polyline2D()
@@ -547,16 +622,33 @@ namespace DeepNestCpp
 				*bbox = AABB(nodes[0],nodes[0]);
 			}
 
+			centroid = glm::vec3(0.0f);
 			for (glm::vec3& p : nodes)
 			{
 				cgalPath.push_back(Point(p.x, p.y));
+				centroid += p;
 			}
+			centroid /= nodes.size();
 			area = cgalPath.area();
+			
 		}
 	}
 
-	void Polyline2D::ToNcInstruction()
+	std::string Polyline2D::ToNcInstruction()
 	{
+		std::string s;
+		char buffer[100];
+		for (glm::vec3& pos : this->nodes)
+		{
+			std::sprintf(buffer, "G1 X%f Y%f\r\n", pos.x, pos.y);
+			s += buffer;
+		}
+		if (isClosed)
+		{
+			std::sprintf(buffer, "G1 X%f Y%f\r\n", this->nodes[0].x, this->nodes[0].y);
+			s += buffer;
+		}
+		return s;
 	}
 
 	void Polyline2D::Offset(double delta)
@@ -565,36 +657,45 @@ namespace DeepNestCpp
 
 	void Polyline2D::Simplify(float epsilon)
 	{
+		intermidatePolygon = MathUtils::DouglasPeucker(this->nodes, epsilon);
+		glBindVertexArray(vao);
+
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		glBufferData(GL_ARRAY_BUFFER, intermidatePolygon.size() * sizeof(glm::vec3), intermidatePolygon.data(), GL_STATIC_DRAW);
 	}
 
 	void Polyline2D::Smooth(float epsilon)
 	{
 	}
 
-	Spline2D::Spline2D(const std::vector<glm::vec3>& controlPoints, const std::vector<float> knots) : controlPoints(controlPoints),knots(knots)
+	Spline2D::Spline2D(const std::vector<glm::vec3>& controlPoints, const std::vector<float> knots,bool isPassTrough) : controlPoints(controlPoints),knots(knots),isPasstrhough(isPasstrhough)
 	{
-		GenerateSplineSamplePoints(controlPoints,splineSamples);
 
-		glGenVertexArrays(1,&vao);
-		glBindVertexArray(vao);
+		if (!isPasstrhough)
+		{
+			GenerateSplineSamplePoints(controlPoints,splineSamples);
+		}
+		else
+		{
+			this->splineSamples = MathUtils::CatmullRomSmooth(controlPoints,100);
+		}
 
-		glGenBuffers(1,&vbo);
-		glBindBuffer(GL_ARRAY_BUFFER,vbo);
+		bbox = new AABB(splineSamples[0],splineSamples[1]);
 		
-		glBufferData(GL_ARRAY_BUFFER,splineSamples.size() * sizeof(glm::vec3),splineSamples.data(),GL_STATIC_DRAW);
+		for (glm::vec3& p : splineSamples)
+		{
+			bbox->Union(p);
+			cgalPath.push_back(Point(p.x, p.y));
+		}
 
-		glVertexAttribPointer(0,3,GL_FLOAT,false,sizeof(glm::vec3),(void*)0);
-		glEnableVertexAttribArray(0);
+		centroid = glm::vec3(0.0f);
+		for (const glm::vec3& p : controlPoints)
+		{
+			centroid += p;
+		}
+		centroid /= controlPoints.size();
+		area = cgalPath.area();
 
-		glGenVertexArrays(1,&vao_cntl);
-		glBindVertexArray(vao_cntl);
-
-		glGenVertexArrays(1,&vbo_cntl);
-		glBindBuffer(GL_ARRAY_BUFFER,vbo_cntl);
-		glBufferData(GL_ARRAY_BUFFER,controlPoints.size() * sizeof(glm::vec3),controlPoints.data(),GL_STATIC_DRAW);
-	
-		glVertexAttribPointer(0,3,GL_FLOAT,false,sizeof(glm::vec3),(void*)0);
-		glEnableVertexAttribArray(0);
 	}
     Spline2D::~Spline2D()
 	{
@@ -602,6 +703,30 @@ namespace DeepNestCpp
 	}
 	void Spline2D::Paint()
 	{
+		if (vao < 0 || vbo < 0)
+		{
+			glGenVertexArrays(1, &vao);
+			glBindVertexArray(vao);
+
+			glGenBuffers(1, &vbo);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+			glBufferData(GL_ARRAY_BUFFER, splineSamples.size() * sizeof(glm::vec3), splineSamples.data(), GL_STATIC_DRAW);
+
+			glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(glm::vec3), (void*)0);
+			glEnableVertexAttribArray(0);
+
+			glGenVertexArrays(1, &vao_cntl);
+			glBindVertexArray(vao_cntl);
+
+			glGenBuffers(1, &vbo_cntl);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo_cntl);
+			glBufferData(GL_ARRAY_BUFFER, controlPoints.size() * sizeof(glm::vec3), controlPoints.data(), GL_STATIC_DRAW);
+
+			glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(glm::vec3), 0);
+			glEnableVertexAttribArray(0);
+		}
+		
 		glBindVertexArray(vao);
 		glDrawArrays(GL_LINE_STRIP,0,splineSamples.size());
 	}
@@ -620,10 +745,55 @@ namespace DeepNestCpp
 
 	void Spline2D::SetParameter(int paramCount, ...)
 	{
+		if (paramCount == 2)
+		{
+			controlPoints.clear();
+			splineSamples.clear();
+			cgalPath.clear();
+
+			va_list args;
+			controlPoints = va_arg(args, std::vector<glm::vec3>);
+			isPasstrhough = va_arg(args, bool);
+
+			if (isPasstrhough)
+			{
+				GenerateSplineSamplePoints(controlPoints, splineSamples);
+			}
+			else
+			{
+				splineSamples = MathUtils::CatmullRomSmooth(controlPoints, 100);
+			}
+
+			if (vao > 0 && vbo > 0)
+			{
+				glBindVertexArray(vao);
+
+				glBindBuffer(GL_ARRAY_BUFFER, vbo);
+				glBufferData(GL_ARRAY_BUFFER, splineSamples.size() * sizeof(glm::vec3), splineSamples.data(), GL_STATIC_DRAW);
+			}
+
+			centroid = glm::vec3(0.0f);
+			for (glm::vec3& p : controlPoints)
+			{
+				centroid += p;
+				cgalPath.push_back(Point(p.x,p.y));
+			}
+			centroid /= controlPoints.size();
+
+			area = cgalPath.area();
+		}
 	}
 
-	void Spline2D::ToNcInstruction()
+	std::string Spline2D::ToNcInstruction()
 	{
+		std::string s;
+		char buffer[100];
+		for (glm::vec3& pos : splineSamples)
+		{
+			sprintf(buffer, "G1 X%f Y%f\r\n", pos.x, pos.y);
+			s += buffer;
+		}
+		return s;
 	}
 
     void Spline2D::GenerateSplineSamplePoints(const std::vector<glm::vec3>& controlPoints,std::vector<glm::vec3> &samples)

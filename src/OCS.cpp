@@ -20,11 +20,11 @@ namespace DeepNestCpp
     {
         if(objectRange == nullptr)
         {
-            objectRange = ent->aabb;
+            objectRange = ent->bbox;
         }
         else
         {
-            objectRange->Union(ent->aabb);
+            objectRange->Union(ent->bbox);
         }
 
         auto find = std::find(entityReference.begin(),entityReference.end(),ent);
@@ -57,12 +57,12 @@ namespace DeepNestCpp
             if(objectRange)
             {
                 delete objectRange;
-                objectRange = new AABB(entityReference[0]->aabb);
+                objectRange = new AABB(entityReference[0]->bbox);
             }else
             {
                 for(int i = 0; i < entityReference.size(); i++)
                 {
-                    objectRange->Union(entityReference[i]->aabb);
+                    objectRange->Union(entityReference[i]->bbox);
                 }
 
                 glm::vec3 canvasCenter = objectRange->Center();
@@ -93,8 +93,8 @@ namespace DeepNestCpp
         int xpower = 0;
         int ypower = 0;
 
-        int xdigit = MathUitls::GetFirstNoneZeroDigit(xrange/25.0f,xpower);
-        int ydigit = MathUitls::GetFirstNoneZeroDigit(yrange/25.0f,ypower);
+        int xdigit = MathUtils::GetFirstNoneZeroDigit(xrange/25.0f,xpower);
+        int ydigit = MathUtils::GetFirstNoneZeroDigit(yrange/25.0f,ypower);
 
         if(xdigit > 8)
             XTickUnit = 8 * pow(10,xpower);
@@ -127,7 +127,7 @@ namespace DeepNestCpp
         float endY = canvasRange->max.y;
 
         beginX = beginX + fmod(beginX,XTickUnit);
-        beginX = MathUitls::SmallestCeilling(beginX,xpower);
+        beginX = MathUtils::SmallestCeilling(beginX,xpower);
 
         while(beginX < endX)
         {
@@ -141,7 +141,7 @@ namespace DeepNestCpp
         }
 
         beginY = beginY + abs(beginY) < YTickUnit;
-        beginY = MathUitls::SmallestCeilling(beginY,ypower);
+        beginY = MathUtils::SmallestCeilling(beginY,ypower);
 
         while(beginY < endY)
         {
