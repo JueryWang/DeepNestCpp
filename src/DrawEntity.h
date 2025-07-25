@@ -35,7 +35,7 @@ namespace DeepNestCpp
             virtual void Rotate(glm::vec3 center,float angle) = 0;
             virtual void Mirror(glm::vec3 center) = 0;
             virtual void SetParameter(int paramCount, ...) = 0;
-            virtual void ToNcInstruction() = 0;
+            virtual std::string ToNcInstruction() = 0;
 
             virtual ~Entity()
             {
@@ -67,6 +67,7 @@ namespace DeepNestCpp
 
             glm::vec3 startProcessLocation;
             glm::mat4 transformMatrix;
+            glm::vec3 centroid;
             bool isSelected;
     };
 
@@ -80,7 +81,7 @@ namespace DeepNestCpp
             virtual void Rotate(glm::vec3 center, float angle) override;
             virtual void Mirror(glm::vec3 center) override;
             virtual void SetParameter(int paramCount, ...) override;
-            virtual void ToNcInstruction() override;
+            virtual std::string ToNcInstruction() override;
 
         private:
             glm::vec3 point;
@@ -96,7 +97,7 @@ namespace DeepNestCpp
             virtual void Rotate(glm::vec3 center, float angle) override;
             virtual void Mirror(glm::vec3 center) override;
             virtual void SetParameter(int paramCount, ...) override;
-            virtual void ToNcInstruction() override;
+            virtual std::string ToNcInstruction() override;
 
         private:
             glm::vec3 start;
@@ -113,7 +114,7 @@ namespace DeepNestCpp
             virtual void Rotate(glm::vec3 center, float angle) override;
             virtual void Mirror(glm::vec3 center) override;
             virtual void SetParameter(int paramCount, ...) override;
-            virtual void ToNcInstruction() override;
+            virtual std::string ToNcInstruction() override;
 
             void GenerateArcSamples(float startAngle,float endAngle,const glm::vec3& center,std::vector<glm::vec3>& samples);
 
@@ -137,7 +138,7 @@ namespace DeepNestCpp
             virtual void Rotate(glm::vec3 center, float angle) override;
             virtual void Mirror(glm::vec3 center) override;
             virtual void SetParameter(int paramCount, ...) override;
-            virtual void ToNcInstruction() override;
+            virtual std::string ToNcInstruction() override;
 
             void GenerateCircleSamplePoints(const glm::vec3& center,float radius,int stepAngle,std::vector<glm::vec3> &samples);
 
@@ -157,7 +158,7 @@ namespace DeepNestCpp
             virtual void Rotate(glm::vec3 center, float angle) override;
             virtual void Mirror(glm::vec3 center) override;
             virtual void SetParameter(int paramCount, ...) override;
-            virtual void ToNcInstruction() override;
+            virtual std::string ToNcInstruction() override;
 
             void GenerateEllipseSamplePoints(glm::vec3 center,float radiusX,float radiusY,int stepAngle,std::vector<glm::vec3>& samples);
         private:
@@ -176,7 +177,7 @@ namespace DeepNestCpp
             virtual void Rotate(glm::vec3 center, float angle) override;
             virtual void Mirror(glm::vec3 center) override;
             virtual void SetParameter(int paramCount, ...) override;
-            virtual void ToNcInstruction() override;
+            virtual std::string ToNcInstruction() override;
             void Offset(double delta);
             void Simplify(float epsilon);
             void Smooth(float epsilon);
@@ -189,7 +190,7 @@ namespace DeepNestCpp
 
     class Spline2D : public Entity{
         public:
-            Spline2D(const std::vector<glm::vec3>& controlPoints, const std::vector<float> knots);
+            Spline2D(const std::vector<glm::vec3>& controlPoints, const std::vector<float> knots, bool isPassTrough);
             ~Spline2D();
             virtual EntityType GetType() const override { return EntityType::Spline; }
             virtual void Paint() override;
@@ -197,7 +198,7 @@ namespace DeepNestCpp
             virtual void Rotate(glm::vec3 center, float angle) override;
             virtual void Mirror(glm::vec3 center) override;
             virtual void SetParameter(int paramCount, ...) override;
-            virtual void ToNcInstruction() override;
+            virtual std::string ToNcInstruction() override;
 
             void GenerateSplineSamplePoints(const std::vector<glm::vec3>& controlPoints,std::vector<glm::vec3> &samples);
         private:
@@ -206,6 +207,7 @@ namespace DeepNestCpp
             std::vector<glm::vec3> controlPoints;
             std::vector<glm::vec3> splineSamples;
             std::vector<float> knots;
+            bool isPasstrhough;
     };
 
     class EntCompound
