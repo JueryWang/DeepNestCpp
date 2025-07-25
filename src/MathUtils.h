@@ -4,6 +4,7 @@
 #include <CGAL/Polygon_2.h>
 #include <CGAL/create_offset_polygons_2.h>
 #include <CGAL/Boolean_set_operations_2.h>
+#include <utility>
 #include <vector>
 #include <cmath>
 
@@ -11,11 +12,9 @@ constexpr double PI = 3.14159265358979323846;
 constexpr double deg2Rad = PI / 180.0f;
 
 typedef CGAL::Exact_predicates_inexact_constructions_kernel Kernel;
-typedef CGAL::Polygon_2<Kernel> Polygon;
+typedef CGAL::Polygon_2<Kernel> Polygon_2;
 typedef Kernel::FT FT;
 typedef Kernel::Point_2 Point;
-typedef Kernel::Point_2 Point;
-typedef CGAL::Polygon_2<Kernel> Polygon_2;
 typedef CGAL::Polygon_with_holes_2<Kernel> PolygonWithHoles;
 typedef std::shared_ptr<PolygonWithHoles> PolygonWithHolesPtr;
 typedef std::vector<PolygonWithHolesPtr> PolygonWithHolesPtrVector;
@@ -168,7 +167,7 @@ namespace DeepNestCpp
 			return ret;
 		}
 
-		static bool IsPolygonInside(const Polygon& inner, const Polygon& outer) {
+		static bool IsPolygonInside(const Polygon_2& inner, const Polygon_2& outer) {
 			for (auto v : inner.vertices()) {
 				auto result = CGAL::bounded_side_2(outer.vertices_begin(), outer.vertices_end(), v);
 				if (result == CGAL::ON_UNBOUNDED_SIDE) {
@@ -262,6 +261,86 @@ namespace DeepNestCpp
 
 			glm::vec3 center(centerX, centerY, 0.0);
 			float radius = glm::distance(center, p1);
+
+			std::tuple<glm::vec3, float> circle(center,radius);
+			return circle;
 		}
+
+		static glm::vec3 CatmullRomInterplate(const glm::vec3 &p0,const glm::vec3 &p1,const glm::vec3& p2,const glm::vec3& p3, double t)
+		{
+			double t2 = t * t;
+			double t3 = t2 * t;
+
+			double x = 0.5 * (
+				(-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * t3 +
+				(2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * t2 +
+				(-p0.x + p2.x) * t +
+				(2 * p1.x));
+
+			double y = 0.5 * (
+				(-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * t3 +
+				(2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * t2 +
+				(-p0.y + p2.y) * t +
+				(2 * p1.y));
+
+			glm::vec3(x, y, 0.0f);
+		}
+
+		std::vector<glm::vec3> CatmullRomSmooth(const std::vector<glm::vec3>& controlPoints, int segmentPerInterval = 10)
+		{
+			std::vector<glm::vec3> result;
+
+			if (controlPoints.size() < 0)
+			{
+				return result;
+			}
+
+			glm::vec3 virtualFirst = glm::vec3(
+				2 * controlPoints[0].x - controlPoints[1].x,
+				2 * controlPoints[0].y - controlPoints[1].y,
+				0.0f
+			);
+
+			glm::vec3 virtualLast = glm::vec3(
+				2 * controlPoints[controlPoints.size() - 1].x - controlPoints[controlPoints.size() - 2].x,
+				2 * controlPoints[controlPoints.size() - 1].y - controlPoints[controlPoints.size() - 2].y,
+				0.0f
+			);
+
+			std::vector<glm::vec3> extendPoints = { virtualFirst,controlPoints[0] };
+			extendPoints.insert(extendPoints.end(), controlPoints.begin(), controlPoints.end());
+			extendPoints.push_back(virtualLast);
+
+			for (int i = 0; i < extendPoints.size() - 3; i++)
+			{
+				glm::vec3 p0 = extendPoints[i];
+				glm::vec3 p1 = extendPoints[i + 1];
+				glm::vec3 p2 = extendPoints[i + 2];
+				glm::vec3 p3 = extendPoints[i + 3];
+
+				for (int j = 0; j < segmentPerInterval; j++)
+				{
+					double t = (double)j / segmentPerInterval;
+					glm::vec3 interpolatedPoint = CatmullRomInterplate(p0, p1, p2, p3, t);
+					result.push_back(interpolatedPoint);
+				}
+			}
+
+			return result;
+		}
+
+		static double PerpendicularDistance(const glm::vec3& point,const std::pair<glm::vec3,glm::vec3>& line)
+		{
+			double area = (0.5 * (line.first.x * line.second.y + line.second.x * point.y +
+				point.x * line.first.y - line.second.x * line.first.y -
+				point.x * line.second.y - line.first.x * point.y));
+
+			double bottom = sqrt(pow(line.second.x - line.first.x, 2) +
+				pow(line.second.y - line.first.y, 2));
+
+			return area / bottom * 2;
+		}
+
+
 	}
 }
