@@ -1,10 +1,6 @@
 #pragma once
 #include "../lib/OGL/glm/glm.hpp"
 #include "ProcessCraft.h"
-#include <CGAL/Exact_predicates_exact_constructions_kernel.h>
-#include <CGAL/Polygon_2.h>
-#include <CGAL/create_offset_polygons_2.h>
-#include <CGAL/Boolean_set_operations_2.h>
 #include <vector>
 #include <cmath>
 
@@ -12,16 +8,6 @@ constexpr double PI = 3.14159265358979323846;
 constexpr double deg2Rad = PI / 180.0f;
 constexpr double rad2Deg = 180.0 / PI;
 constexpr float epsilon = 1e-6;
-
-typedef CGAL::Exact_predicates_inexact_constructions_kernel Kernel;
-typedef CGAL::Polygon_2<Kernel> Polygon;
-typedef Kernel::FT FT;
-typedef Kernel::Point_2 Point;
-typedef Kernel::Point_2 Point;
-typedef CGAL::Polygon_2<Kernel> Polygon_2;
-typedef CGAL::Polygon_with_holes_2<Kernel> PolygonWithHoles;
-typedef std::shared_ptr<PolygonWithHoles> PolygonWithHolesPtr;
-typedef std::vector<PolygonWithHolesPtr> PolygonWithHolesPtrVector;
 
 namespace DeepNestCpp
 {
@@ -171,26 +157,26 @@ namespace DeepNestCpp
 			return ret;
 		}
 
-		static bool IsPolygonInside(const Polygon_2& inner, const Polygon_2& outer) {
-			for (auto v : inner.vertices()) {
-				auto result = CGAL::bounded_side_2(outer.vertices_begin(), outer.vertices_end(), v);
-				if (result == CGAL::ON_UNBOUNDED_SIDE) {
-					return false;
-				}
-			}
+		//static bool IsPolygonInside(const Polygon_2& inner, const Polygon_2& outer) {
+		//	for (auto v : inner.vertices()) {
+		//		auto result = CGAL::bounded_side_2(outer.vertices_begin(), outer.vertices_end(), v);
+		//		if (result == CGAL::ON_UNBOUNDED_SIDE) {
+		//			return false;
+		//		}
+		//	}
 
-			for (auto e : inner.edges())
-			{
-				Point mid = CGAL::midpoint(e.source(), e.target());
-				auto result = CGAL::bounded_side_2(outer.vertices_begin(), outer.vertices_end(), mid);
-				if (result == CGAL::ON_UNBOUNDED_SIDE)
-				{
-					return false;
-				}
-			}
+		//	for (auto e : inner.edges())
+		//	{
+		//		Point mid = CGAL::midpoint(e.source(), e.target());
+		//		auto result = CGAL::bounded_side_2(outer.vertices_begin(), outer.vertices_end(), mid);
+		//		if (result == CGAL::ON_UNBOUNDED_SIDE)
+		//		{
+		//			return false;
+		//		}
+		//	}
 
-			return true;
-		}
+		//	return true;
+		//}
 
 		//static void PathOffset()
 		//{

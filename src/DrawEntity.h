@@ -2,14 +2,8 @@
 #include "../lib/OGL/glad/glad.h"
 #include "../lib/OGL/glm/glm.hpp"
 #include "AABB.h"
-#include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
-#include <CGAL/Polygon_2.h>
-#include <CGAL/draw_polygon_2.h>
+#include <string>
 #include <vector>
-
-typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
-typedef CGAL::Polygon_2<K>                                  Polygon_2;
-typedef CGAL::Point_2<K>                                    Point;
 
 namespace DeepNestCpp
 {
@@ -63,7 +57,7 @@ namespace DeepNestCpp
             std::vector<float> jointPoints;
             float jointLength;
             double area;
-            Polygon_2 cgalPath;
+            //Polygon_2 cgalPath;
 
             glm::vec3 startProcessLocation;
             glm::mat4 transformMatrix;

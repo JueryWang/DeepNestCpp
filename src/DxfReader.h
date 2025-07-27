@@ -4,7 +4,7 @@
 #include "../lib/dxflib/include/dl_creationadapter.h"
 #include <string>
 
-namespace
+namespace DeepNestCpp
 {
 	class Sketch;
 }
@@ -75,5 +75,7 @@ namespace DeepNestCpp
 			virtual void addXDataInt(int index, int data);
 			virtual void addDictionary(const DL_DictionaryData& data);
 			virtual void addDictionaryEntry(const DL_DictionaryEntryData& data);
+	private:
+		Sketch* sketch;
 	};
 }

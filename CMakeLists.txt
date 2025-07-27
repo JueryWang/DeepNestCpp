@@ -10,19 +10,19 @@ include_directories(include)
 
 file(GLOB SOURCES "src/*.cpp")
 
-set(BOOST_ROOT "E:/boost_1_82_0")
+set(BOOST_ROOT "D:/3rdLibrary/boost_1_82_0")
 find_package(Boost REQUIRED)
 
-set(GMP_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/CGAL-6.0.1/auxiliary/gmp/include")
-set(GMP_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/lib/CGAL-6.0.1/auxiliary/gmp/lib")
-set(MPFR_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/CGAL-6.0.1/auxiliary/gmp/include")
-set(MPFR_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/lib/CGAL-6.0.1/auxiliary/gmp/lib")
+#set(GMP_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/CGAL-6.0.1/auxiliary/gmp/include")
+#set(GMP_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/lib/CGAL-6.0.1/auxiliary/gmp/lib")
+#set(MPFR_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/CGAL-6.0.1/auxiliary/gmp/include")
+#set(MPFR_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/lib/CGAL-6.0.1/auxiliary/gmp/lib")
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Core Gui Widgets REQUIRED)
 find_package(Boost REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui Widgets)
-list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_SOURCE_DIR}/lib/CGAL-6.0.1/install/lib/cmake/CGAL")
+#list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_SOURCE_DIR}/lib/CGAL-6.0.1/install/lib/cmake/CGAL")
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/CGAL-6.0.1/include)
+#include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/CGAL-6.0.1/include)
 include_directories(${Qt${QT_VERSION_MAJOR}_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/OGL)
 include_directories(${Boost_INCLUDE_DIRS})
@@ -51,7 +51,3 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     Qt${QT_VERSION_MAJOR}::Widgets
     ${OPENGL_LIBS}
 )
-
-message(STATUS "Qt version: ${QT_VERSION_MAJOR}")
-message(STATUS "Qt libraries: ${Qt${QT_VERSION_MAJOR}_LIBRARIES}")
-message(STATUS "Qt include dirs: ${Qt${QT_VERSION_MAJOR}_INCLUDE_DIRS}")

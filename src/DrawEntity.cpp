@@ -17,7 +17,7 @@ namespace DeepNestCpp
 		glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * sizeof(float), (void*)0);
 		glEnableVertexAttribArray(0);
 
-		cgalPath.push_back(Point(point.x,point.y));
+		//cgalPath.push_back(Point(point.x,point.y));
 		bbox = new AABB(point, point);
 	}
 	Point2D::~Point2D()
@@ -77,8 +77,8 @@ namespace DeepNestCpp
 				glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3), &point, GL_STATIC_DRAW);
 			}
 
-			cgalPath.clear();
-			cgalPath.push_back(Point(point.x, point.y));
+			//cgalPath.clear();
+			//cgalPath.push_back(Point(point.x, point.y));
 			*bbox = AABB(point,point);
 		}
 	}
@@ -94,8 +94,8 @@ namespace DeepNestCpp
 	{
 		bbox = new AABB(start,end);
 
-		cgalPath.push_back(Point(start.x,start.y));
-		cgalPath.push_back(Point(end.x, end.y));
+		//cgalPath.push_back(Point(start.x,start.y));
+		//cgalPath.push_back(Point(end.x, end.y));
 	}
 
 	Line2D::~Line2D()
@@ -162,9 +162,9 @@ namespace DeepNestCpp
 				glm::vec3 arrays[] = { start,end };
 				glBufferData(GL_ARRAY_BUFFER, 2*sizeof(glm::vec3), arrays, GL_STATIC_DRAW);
 			}
-			cgalPath.clear();
-			cgalPath.push_back(Point(start.x,start.y));
-			cgalPath.push_back(Point(end.x, end.y));
+			//cgalPath.clear();
+			//cgalPath.push_back(Point(start.x,start.y));
+			//cgalPath.push_back(Point(end.x, end.y));
 		}
 	}
 
@@ -209,7 +209,7 @@ namespace DeepNestCpp
 		centroid = glm::vec3(0.0);
 		for (const glm::vec3& vec : arcSamples)
 		{
-			cgalPath.push_back(Point(vec.x,vec.y));
+			//cgalPath.push_back(Point(vec.x,vec.y));
 			centroid += vec;
 		}
 
@@ -273,7 +273,7 @@ namespace DeepNestCpp
 		if (paramCount == 3)
 		{
 			arcSamples.clear();
-			cgalPath.clear();
+			//cgalPath.clear();
 			
 			va_list args;
 			center = va_arg(args,glm::vec3);
@@ -314,7 +314,7 @@ namespace DeepNestCpp
 			centroid = glm::vec3(0.0f);
 			for(const glm::vec3& p : arcSamples)
 			{
-				cgalPath.push_back(Point(p.x,p.y));
+				//cgalPath.push_back(Point(p.x,p.y));
 				center += p;
 			}
 			center /= arcSamples.size();
@@ -369,7 +369,7 @@ namespace DeepNestCpp
 		centroid = glm::vec3(0.0f);
 		for (const glm::vec3& vec : circleSamples)
 		{
-			cgalPath.push_back(Point(vec.x, vec.y));
+			//cgalPath.push_back(Point(vec.x, vec.y));
 			centroid += vec;
 		}
 		centroid /= circleSamples.size();
@@ -415,7 +415,7 @@ namespace DeepNestCpp
 		if (paramCount == 2)
 		{
 			circleSamples.clear();
-			cgalPath.clear();
+			//cgalPath.clear();
 
 			va_list args;
 			center = va_arg(args, glm::vec3);
@@ -436,7 +436,7 @@ namespace DeepNestCpp
 			centroid = glm::vec3(0.0f);
 			for (const glm::vec3& vec : circleSamples)
 			{
-				cgalPath.push_back(Point(vec.x, vec.y));
+				//cgalPath.push_back(Point(vec.x, vec.y));
 				centroid += vec;
 			}
 			centroid /= circleSamples.size();
@@ -552,11 +552,11 @@ namespace DeepNestCpp
 		centroid = glm::vec3(0.0f);
 		for (glm::vec3& p : nodes)
 		{
-			cgalPath.push_back(Point(p.x,p.y));
+			//cgalPath.push_back(Point(p.x,p.y));
 			centroid += p;
 		}
 		centroid /= nodes.size();
-		area = cgalPath.area();
+		//area = cgalPath.area();
 	}
 	Polyline2D::~Polyline2D()
 	{
@@ -595,7 +595,7 @@ namespace DeepNestCpp
 	{
 		if (paramCount == 2)
 		{
-			cgalPath.clear();
+			//cgalPath.clear();
 
 			va_list args;
 			nodes = va_arg(args, std::vector<glm::vec3>);
@@ -625,11 +625,11 @@ namespace DeepNestCpp
 			centroid = glm::vec3(0.0f);
 			for (glm::vec3& p : nodes)
 			{
-				cgalPath.push_back(Point(p.x, p.y));
+				//cgalPath.push_back(Point(p.x, p.y));
 				centroid += p;
 			}
 			centroid /= nodes.size();
-			area = cgalPath.area();
+			//area = cgalPath.area();
 			
 		}
 	}
@@ -685,7 +685,7 @@ namespace DeepNestCpp
 		for (glm::vec3& p : splineSamples)
 		{
 			bbox->Union(p);
-			cgalPath.push_back(Point(p.x, p.y));
+			//cgalPath.push_back(Point(p.x, p.y));
 		}
 
 		centroid = glm::vec3(0.0f);
@@ -694,7 +694,7 @@ namespace DeepNestCpp
 			centroid += p;
 		}
 		centroid /= controlPoints.size();
-		area = cgalPath.area();
+		//area = cgalPath.area();
 
 	}
     Spline2D::~Spline2D()
@@ -749,7 +749,7 @@ namespace DeepNestCpp
 		{
 			controlPoints.clear();
 			splineSamples.clear();
-			cgalPath.clear();
+			//cgalPath.clear();
 
 			va_list args;
 			controlPoints = va_arg(args, std::vector<glm::vec3>);
@@ -776,11 +776,11 @@ namespace DeepNestCpp
 			for (glm::vec3& p : controlPoints)
 			{
 				centroid += p;
-				cgalPath.push_back(Point(p.x,p.y));
+				//cgalPath.push_back(Point(p.x,p.y));
 			}
 			centroid /= controlPoints.size();
 
-			area = cgalPath.area();
+			//area = cgalPath.area();
 		}
 	}
 

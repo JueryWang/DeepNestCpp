@@ -1,34 +1,38 @@
 #pragma once
 #include <vector>
+#include <string>
+#include <map>
+#include "DrawEntity.h"
+#include "Canvas.h"
 #include "../lib/dxflib/include/dl_entities.h"
 
 namespace DeepNestCpp
 {
-	class Canvas;
-	class Entity;
-
 	class Sketch
 	{
 	public:
 		Sketch();
 		~Sketch();
 
-		void OnLoadArc(const DL_ArcData& data);
-		void OnLoadCircle(const DL_CircleData& data);
-		void OnLoadEllipse(const DL_EllipseData& data);
-		void OnLoadLine(const DL_LineData& data);
-		void OnLoadPoint(const DL_PointData& data);
-		void OnLoadPolyline(const DL_PolylineData& data);
-		void OnLoadControlPoint(const DL_ControlPointData& data);
-		void onLoadSpline(const DL_SplineData& data);
-		void OnLoadVertex(const DL_VertexData& data);
-		void OnLoadKnot(const DL_KnotData& data);
+		void AddEntity(Entity* e);
+		void EraseEntity(Entity* e);
+		void ClearEntities();
 		void UpdateSketch();
+		void SplitPart();
+		void SimplifyGeometry(float delta);
+		void SmoothGeometry();
+		void GenEnvolop(int expandValue, int smoothValue);
+		void ToNcProgram(std::string file);
+
 	private:
 
 		EntityType entType;
 		Canvas* mainCanvas;
-		std::vector<Canvas*> partPreview;
+		std::map<Canvas*,EntCompound*> partPreview;
+		std::vector<EntCompound*> parts;
 		std::vector<Entity*> entities;
+		std::vector<Polyline2D*> envolopProfile;
+
+		
 	};
 }

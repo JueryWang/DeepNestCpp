@@ -23,7 +23,7 @@ namespace DeepNestCpp
 
     }
 
-    void Canvas::addEntity(Entity* ent)
+    void Canvas::AddEntity(Entity* ent)
     {
         entities.push_back(ent);
     }

@@ -15,11 +15,12 @@ namespace DeepNestCpp
 
     class Canvas : QWindow
     {
+        friend class Sketch;
         public:
             Canvas(int width,int height,bool isMainCanvas);
             ~Canvas();
             
-            void addEntity(Entity* ent);
+            void AddEntity(Entity* ent);
             void Paint();
             void UpdateOCS();
 
@@ -36,6 +37,8 @@ namespace DeepNestCpp
             static Shader drawTickerTextShader;
             OCS* ocsSys = nullptr;
             QPoint lastMousePos;
+            std::vector<Polyline2D*> envolopCurve;
+            std::vector<Entity*> auxiliary;
             std::vector<Entity*> entities;
             std::vector<EntCompound*> parts;
             bool firstResize;
