@@ -85,7 +85,8 @@ namespace DeepNestCpp
 
 	std::string Point2D::ToNcInstruction()
 	{
-
+		std::string s = "";
+		return "";
 	}
 
 
@@ -515,6 +516,8 @@ namespace DeepNestCpp
 
 	std::string Ellipse2D::ToNcInstruction()
 	{
+		std::string s;
+		return s;
 	}
 
 	void Ellipse2D::GenerateEllipseSamplePoints(glm::vec3 center,float radiusX,float radiusY,int stepAngle,std::vector<glm::vec3>& samples)

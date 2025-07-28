@@ -19,9 +19,9 @@ namespace DeepNestCpp
                 *this->range = *range;
             }
 
-            glm::mat4 GetOrthoGraphicMatrix(float aspectRatio)
+            glm::mat4 GetOrthoGraphicMatrix()
             {
-                AABB rangeNew(glm::vec3(range->min.x,range->min.y * aspectRatio,0.0f),glm::vec3(range->max.x,range->max.y*aspectRatio,0.0f));
+                AABB rangeNew(glm::vec3(range->min.x,range->min.y,0.0f),glm::vec3(range->max.x,range->max.y,0.0f));
                 glm::vec3 offset = range->Center() - rangeNew.Center();
                 rangeNew.Translate(offset);
 

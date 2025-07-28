@@ -8,6 +8,8 @@
 
 namespace DeepNestCpp
 {
+	class Canvas;
+
 	class Sketch
 	{
 	public:

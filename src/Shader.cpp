@@ -1,6 +1,6 @@
 #include "Shader.h"
 
-namespace GraphicDriver
+namespace DeepNestCpp
 {
     Shader::Shader(const char* vertexPath, const char* fragmentPath, const char* geometryPath)
     {

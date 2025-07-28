@@ -40,7 +40,6 @@ void DeepNestCpp::Sketch::UpdateSketch()
 	mainCanvas->entities = this->entities;
 	mainCanvas->envolopCurve = envolopProfile;
 	mainCanvas->UpdateOCS();
-	mainCanvas->Paint();
 }
 
 void DeepNestCpp::Sketch::SplitPart()

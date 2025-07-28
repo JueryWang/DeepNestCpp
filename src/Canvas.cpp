@@ -1,21 +1,36 @@
+#define GLFW_EXPOSE_NATIVE_WIN32
 #include "Canvas.h"
-#include "DrawEntity.h"
 #include "OCS.h"
+#include "DrawEntity.h"
+#include "Sketch.h"
+#include <Windows.h>
 #include <QMouseEvent>
+#include "../lib/OGL/GLFW/glfw3.h"
 
 namespace DeepNestCpp
 {
-    Shader Canvas::drawEntityShader = Shader("Resources/drawEntity.vert","Resources/drawEntity.frag");
-    Shader Canvas::drawTickerShader = Shader("Resources/drawTick.vert", "Resources/drawTick.frag");
-    Shader Canvas::drawTickerTextShader = Shader("Resources/drawTickText.vert", "Resources/drawTick.frag");
 
-    Canvas::Canvas(int width,int height, bool isMainCanvas) : isMainCanvas(isMainCanvas)
+    Canvas::Canvas(int width,int height, bool isMainCanvas) : OpenGLRenderWindow(width,height,""), isMainCanvas(isMainCanvas)
     {
         firstResize = true;
-        window = glfwCreateWindow(width,height,"",NULL,NULL);
+        ocsSys = new OCS();
+        ocsSys->genTickers = isMainCanvas;
+        ocsSys->canvasWidth = width;
+        ocsSys->canvasHeight = height;
+        UpdateOCS();
+
+        this->Resize(QSize(width, height));
         
-        this->resize(width, height);
-        glfwMakeContextCurrent(window);
+
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        Shader* Normal_Shader = new Shader("Shader/drawEntity.vert","Shader/drawEntity.frag", "Shader/addArrow.geom");
+        Shader* ShowArrow_Shader = new Shader("Shader/drawEntity.vert", "Shader/drawEntity.frag");
+        Shader* drawTicker_Shader = new Shader("Shader/drawTickText.vert", "Shader/drawTickText.frag");
+        m_shaderMap[RenderMode::Normal] = Normal_Shader;
+        m_shaderMap[RenderMode::ShowArrow] = ShowArrow_Shader;
+        m_shaderMap[RenderMode::DrawTickers] = drawTicker_Shader;
     }
 
     Canvas::~Canvas()
@@ -28,33 +43,9 @@ namespace DeepNestCpp
         entities.push_back(ent);
     }
 
-    void Canvas::Paint()
-    {
-        glfwMakeContextCurrent(window);
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        
-        int width, height;
-        glfwGetWindowSize(window, &width, &height);
-        float aspectRatio = (float)width / (float)height;
-        drawEntityShader.setVec4("PaintColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-        drawEntityShader.setMat4("projection", ocsSys->GetCamera()->GetOrthoGraphicMatrix(aspectRatio));
-        drawEntityShader.setMat4("view", ocsSys->GetCamera()->GetViewMatrix());
-
-        for (Entity* ent : part->entities)
-        {
-            ent->Paint();
-        }
-
-        if (isMainCanvas)
-            DrawTickers();
-        
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-    }
-
     void Canvas::UpdateOCS()
     {
+        ocsSys->entityReference = this->entities;
         ocsSys->ComputeScaleFitToCanvas();
         if (isMainCanvas)
         {
@@ -64,72 +55,104 @@ namespace DeepNestCpp
 
     bool Canvas::eventFilter(QObject* obj, QEvent* event)
     {
-        if (obj == this)
+        switch (event->type())
         {
-            switch (event->type())
+            case QEvent::Resize:
             {
-                case QEvent::Resize:
+                int width, height;
+                glfwGetWindowSize(m_window.get(), &width, &height);
+                if (ocsSys != nullptr)
                 {
-                    int width, height;
-                    glfwGetWindowSize(window, &width, &height);
-                    if (ocsSys != nullptr)
+                    ocsSys->SetCanvasSizae(width, height);
+                    if (firstResize)
                     {
-                        ocsSys->SetCanvasSizae(width, height);
-                        if (firstResize)
-                        {
-                            ocsSys->ComputeScaleFitToCanvas();
-                            ocsSys->UpdateTickers();
-                            firstResize = false;
-                        }
+                        ocsSys->ComputeScaleFitToCanvas();
+                        ocsSys->UpdateTickers();
+                        firstResize = false;
                     }
-                    break;
                 }
-                case QEvent::MouseButtonPress:
-                {
-                    QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
-                    if (mouseEvent->buttons() & Qt::MiddleButton)
-                    {
-                        isDragging = true;
-                        lastMousePos = mouseEvent->pos();
-                    }
-                    break;
-                }
-                case QEvent::MouseButtonRelease:
-                {
-                    QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
-                    if (mouseEvent->button() & Qt::MiddleButton)
-                    {
-                        isDragging = false;
-                    }
-                    break;
-                }
-                case QEvent::MouseMove:
-                {
-                    if (isDragging)
-                    {
-                        QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
-                        QPoint currentMousePos = mouseEvent->pos();
-                        QPoint offset = currentMousePos - lastMousePos;
-
-                        lastMousePos = currentMousePos;
-                        ocsSys->OnMouseMove(glm::vec2(offset.x()*0.1f, offset.y()*0.1f));
-                        this->Paint();
-                    }
-                    break;
-                }
-                case QEvent::Wheel:
-                {
-                    if (!isDragging)
-                    {
-                        QWheelEvent* wheelEvent = static_cast<QWheelEvent*>(event);
-                        float delta = wheelEvent->angleDelta().y() * 0.1;
-                        lastMousePos = wheelEvent->position().toPoint();
-
-                        ocsSys->OnMouseScroll(delta, glm::vec2(lastMousePos.x(),lastMousePos.y()));
-                    }
-                    break;
-                }
+                break;
             }
+            case QEvent::MouseButtonPress:
+            {
+                QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
+                if (mouseEvent->buttons() & Qt::MiddleButton)
+                {
+                    isDragging = true;
+                    lastMousePos = mouseEvent->pos();
+                }
+                break;
+            }
+            case QEvent::MouseButtonRelease:
+            {
+                QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
+                if (mouseEvent->button() & Qt::MiddleButton)
+                {
+                    isDragging = false;
+                }
+                break;
+            }
+            case QEvent::MouseMove:
+            {
+                if (isDragging)
+                {
+                    QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
+                    QPoint currentMousePos = mouseEvent->pos();
+                    QPoint offset = currentMousePos - lastMousePos;
+
+                    lastMousePos = currentMousePos;
+                    ocsSys->OnMouseMove(glm::vec2(offset.x()*0.1f, offset.y()*0.1f));
+                }
+                break;
+            }
+            case QEvent::Wheel:
+            {
+                if (!isDragging)
+                {
+                    QWheelEvent* wheelEvent = static_cast<QWheelEvent*>(event);
+                    float delta = wheelEvent->angleDelta().y() * 0.1;
+                    lastMousePos = wheelEvent->position().toPoint();
+
+                    ocsSys->OnMouseScroll(delta, glm::vec2(lastMousePos.x(),lastMousePos.y()));
+                }
+                break;
+            }
+        }
+
+        return true;
+    }
+
+    void Canvas::updateGL(Sketch* sketch)
+    {
+        GLFWwindow* windowInst = m_window.get();
+        if (windowInst)
+        {
+            glfwMakeContextCurrent(windowInst);
+            glClearColor(0.95f, 0.95f, 0.95f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            Shader* shaderUsed = m_shaderMap[mode];
+            shaderUsed->use();
+            int width, height;
+            glfwGetWindowSize(windowInst, &width, &height);
+
+            glm::mat4 ortho = ocsSys->camera->GetOrthoGraphicMatrix();
+            glm::mat4 view = ocsSys->camera->GetViewMatrix();
+            shaderUsed->setMat4("projection",ortho);
+            shaderUsed->setMat4("view", view);
+
+            for (Entity* ent : entities)
+            {
+                shaderUsed->setVec4("PaintColor",ent->color);
+                ent->Paint();
+            }
+
+            if (isMainCanvas)
+            {
+                DrawTickers();
+            }
+
+            glfwSwapBuffers(m_window.get());
+            glReadPixels(0, 0, m_width, m_height, GL_RGB, GL_UNSIGNED_BYTE, m_windowbuf);
         }
     }
 

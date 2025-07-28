@@ -4,16 +4,17 @@
 #include <QWindow>
 #include <QWidget>
 #include <vector>
-#include "../lib/OGL/glm/glm.hpp"
-#include "../lib/OGL/GLFW/glfw3.h"=
+#include "DrawEntity.h"
 #include "Shader.h"
+#include "OpenGLContext.h"
+#include "OpenGLRenderWindow.h"
 
 namespace DeepNestCpp
 {
     class Entity;
     class OCS;
 
-    class Canvas : QWindow
+    class Canvas : public OpenGLRenderWindow
     {
         friend class Sketch;
         public:
@@ -21,20 +22,19 @@ namespace DeepNestCpp
             ~Canvas();
             
             void AddEntity(Entity* ent);
-            void Paint();
             void UpdateOCS();
+            void SetRenderMode(RenderMode mode) { this->mode = mode; }
 
         protected:
-            bool eventFilter(QObject* obj, QEvent* event) override;
+            virtual bool eventFilter(QObject* obj, QEvent* event) override;
+            virtual void updateGL(Sketch* sketch) override;
 
         private: 
             void DrawTickers();
 
         private: 
-            GLFWwindow* window;
-            static Shader drawEntityShader;
-            static Shader drawTickerShader;
-            static Shader drawTickerTextShader;
+            RenderMode mode = RenderMode::Normal;
+
             OCS* ocsSys = nullptr;
             QPoint lastMousePos;
             std::vector<Polyline2D*> envolopCurve;

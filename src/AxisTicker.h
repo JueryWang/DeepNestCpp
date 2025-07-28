@@ -1,6 +1,7 @@
 #pragma once
 #include "../lib/OGL/glad/glad.h"
 #include "../lib/OGL/glm/glm.hpp"
+#include <vector>
 #include <iostream>
 #include <vector>
 
@@ -20,48 +21,19 @@ namespace DeepNestCpp
 
     class AxisTicker
     {
-        public:
-            AxisTicker(float value,const std::vector<glm::vec3>& oglPosition,TickType Ttype,AxisType Atype) : 
-            tickCoord(oglPosition),value(value),Ttype(Ttype),Atype(Atype)
-            {
-                glGenVertexArrays(1,&vao);
-                glBindVertexArray(vao);
-                
-                glGenBuffers(GL_ARRAY_BUFFER,&vbo);
-                glBindBuffer(GL_ARRAY_BUFFER,vbo);
-                
-                glBufferData(GL_ARRAY_BUFFER,oglPosition.size() * sizeof(glm::vec3),oglPosition.data(),GL_STATIC_DRAW);
-                glVertexAttribPointer(0,3,GL_FLOAT,false,sizeof(glm::vec3),0);
-                glEnableVertexAttribArray(0);
-            }
+        float value;
+        glm::vec3 tickCoord[2];
+        TickType Ttype;
+        AxisType Atype;
 
-            ~AxisTicker()
-            {
-                std::cout<<"delete AxisTicker"<<std::endl;
-                
-                if(vao)
-                {
-                    glDeleteVertexArrays(1,&vao);
-                }
-                if(vbo)
-                {
-                    glDeleteBuffers(1,&vbo);
-                }
-                glBindVertexArray(0);
-            }
-
-            void paint()
-            {
-                glBindVertexArray(vao);
-                glDrawArrays(GL_LINES,0,2);
-            }
-
-        private:
-            GLuint vao;
-            GLuint vbo;
-            float value;
-            std::vector<glm::vec3> tickCoord;
-            TickType Ttype;
-            AxisType Atype;
+    public:
+        AxisTicker(float _value,const std::vector<glm::vec3>& oglPosition, TickType _Ttype, AxisType _AType)
+        {
+            tickCoord[0] = oglPosition[0];
+            tickCoord[1] = oglPosition[1];
+            value = _value;
+            Ttype = _Ttype;
+            Atype = _AType;
+        }
     };
 }

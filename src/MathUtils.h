@@ -41,7 +41,7 @@ namespace DeepNestCpp
 			return dotProduct / (magnitudeA * magnitudeB);
 		}
 
-		glm::vec3 inline DeCasteljau(std::vector<glm::vec3>& points, float t)
+		glm::vec3 inline DeCasteljau(const std::vector<glm::vec3>& points, float t)
 		{
 			if (points.size() == 1)
 				return points[0];
@@ -53,6 +53,24 @@ namespace DeepNestCpp
 			}
 
 			return DeCasteljau(newPoints, t);
+		}
+
+		static int FindSpan(int n, int p, float t, const std::vector<float>& knots)
+		{
+			if (t >= knots[n + 1]) return n;
+			if (t <= knots[p]) return p;
+
+			int low = p, high = n + 1;
+			int mid = (low + high) / 2;
+
+			while (t < knots[mid] || t >= knots[mid + 1])
+			{
+				if (t < knots[mid]) high = mid;
+				else low = mid;
+				mid = (low + high) / 2;
+			}
+
+			return mid;
 		}
 
 		static glm::vec3 CalculateBSpline(const std::vector<glm::vec3>& controlPoints, const std::vector<float>& knots, int degree, float t)
@@ -78,25 +96,7 @@ namespace DeepNestCpp
 			return d[degree];
 		}
 
-		int FindSpan(int n, int p, float t, const std::vector<float> knots)
-		{
-			if (t >= knots[n + 1]) return n;
-			if (t <= knots[p]) return p;
-
-			int low = p, high = n + 1;
-			int mid = (low + high) / 2;
-
-			while (t < knots[mid] || t >= knots[mid + 1])
-			{
-				if (t < knots[mid]) high = mid;
-				else low = mid;
-				mid = (low + high) / 2;
-			}
-
-			return mid;
-		}
-
-		std::vector<float> GenerateClampedKnots(int controlPointCount, int degree)
+		static std::vector<float> GenerateClampedKnots(int controlPointCount, int degree)
 		{
 			int n = controlPointCount - 1;
 			int m = n + degree + 1;
@@ -114,7 +114,7 @@ namespace DeepNestCpp
 			return knots;
 		}
 
-		int GetFirstNoneZeroDigit(float number, int& power)
+		static int GetFirstNoneZeroDigit(float number, int& power)
 		{
 			if (number == 0)
 				return 0;
@@ -132,7 +132,7 @@ namespace DeepNestCpp
 			}
 			else
 			{
-				while (number >= 0)
+				while (number >= 10)
 				{
 					number /= 10;
 					order++;
@@ -144,7 +144,7 @@ namespace DeepNestCpp
 		}
 
 		//返回指定位数数字进位的数 1577,2 -> 1580 | 0.564,-2 -> 0.57
-		float SmallestCeilling(float value, int position)
+		static float SmallestCeilling(float value, int position)
 		{
 			double ret;
 			if (position == 0)
@@ -187,50 +187,6 @@ namespace DeepNestCpp
 		//{
 
 		//}
-
-		static std::vector<glm::vec3> AndrewConvex(const std::vector<glm::vec3> &pointset)
-		{
-			std::vector<glm::vec3> convex;
-			int tp = 0;
-
-			int n = pointset.size();
-			std::vector<int> stk(pointset.size() + 1, 0);
-			std::vector<int> used(pointset.size() + 1, 0);
-
-			std::sort(pointset.begin(), pointset.end(), [](glm::vec3 v1, glm::vec3 v2) {
-				if (v1.x < v2.x) return true;
-				else if (v1.x == v2.x) { if (v1.y < v2.y) return true; else return false; }
-				else return false;
-				});
-			stk[++tp] = 1;
-
-			for (int i = 2; i < n; i++)
-			{
-				while (tp >= 2 && glm::cross(pointset[stk[tp]] - pointset[stk[tp - 1]], pointset[i] - pointset[tp]).z <= 0)
-					used[stk[tp--]] = 0;
-
-				used[i] = 1;
-				stk[++tp] = i;
-			}
-
-			int tmp = tp;
-			for (int i = pointset.size() - 1; i > 0; --i)
-			{
-				if (used[i] == 0)
-				{
-					while (tp > tmp && glm::cross(pointset[stk[tp]] - pointset[stk[tp - 1]], pointset[i] - pointset[stk[tp]]).z <= 0)
-						used[stk[tp--]] = 0;
-
-					used[i] = 1;
-					stk[++tp] = i;
-				}
-			}
-
-			for (int i = 1; i <= tp; ++i)
-				convex.push_back(pointset[stk[i]]);
-
-			return convex;
-		}
 
 		static std::tuple<glm::vec3, float> CalculateCircleByThreePoints(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3)
 		{
@@ -329,14 +285,14 @@ namespace DeepNestCpp
 			return area / bottom * 2;
 		}
 
-		static std::vector<glm::vec3> DouglasPeucker(const std::vector<glm::vec3>& points, double epsilon)
+		static std::vector<glm::vec3> DouglasPeucker(std::vector<glm::vec3> points, double epsilon)
 		{
 			if (points.size() < 3)
 				return points;
 
 			double dmax = 0;
 			int index = 0;
-			line ln = line(points[0], points[1]);
+			line ln = std::make_pair(points[0], points[1]);
 
 			for (int i = 1; i < points.size() - 1; i++)
 			{
@@ -354,7 +310,7 @@ namespace DeepNestCpp
 				std::vector<glm::vec3> result2 = DouglasPeucker(std::vector<glm::vec3>(points.begin() + index, points.begin() + points.size() - index), epsilon);
 
 				result1.erase(result1.end()-1);
-				result1.insert(result1.begin(), result2.begin(), result2.end());
+				//result1.insert(result1.begin(), result2.begin(), result2.end());
 				return result1;
 			}
 			else

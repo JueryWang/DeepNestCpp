@@ -7,12 +7,10 @@ namespace DeepNestCpp
 {
     OCS::OCS()
     {
-
+        
     }
     OCS::~OCS()
     {
-        delete objectRange;
-        delete canvasRange;
         delete camera;
     }
 
@@ -51,29 +49,43 @@ namespace DeepNestCpp
 
     void OCS::ComputeScaleFitToCanvas()
     {
-        float fitRatio = 3.0f/4.0f;
+        float fitRatio = 1.0f/2.0f;
         if(entityReference.size() > 0)
         {
-            if(objectRange)
-            {
-                delete objectRange;
-                objectRange = new AABB(entityReference[0]->bbox);
-            }else
-            {
-                for(int i = 0; i < entityReference.size(); i++)
-                {
-                    objectRange->Union(entityReference[i]->bbox);
-                }
+            objectRange = new AABB(entityReference[0]->bbox);
 
-                glm::vec3 canvasCenter = objectRange->Center();
-                glm::vec3 canvasLB = glm::vec3(canvasCenter.x - objectRange->XRange()/2 * 1.0f/fitRatio,canvasCenter.y - objectRange->YRange()/2 * 1.0f/fitRatio,0.0f);
-                glm::vec3 canvasRT = glm::vec3(canvasCenter.x + objectRange->XRange()/2 * 1.0f/fitRatio,canvasCenter.y - objectRange->YRange()/2 * 1.0f/fitRatio,0.0f);
-                canvasLB *= scale;
-                canvasRT *= scale;
-                if(canvasRange)
-                    delete canvasRange;
-                canvasRange = std::move(new AABB(canvasLB,canvasRT));
+            for (int i = 1; i < entityReference.size(); i++)
+            {
+                objectRange->Union(entityReference[i]->bbox);
             }
+
+            glm::vec3 canvasCenter = objectRange->Center();
+            glm::vec3 canvasLB;
+            glm::vec3 canvasRT;
+            float widthExpand = objectRange->XRange() / canvasWidth;
+            float heightExpand = objectRange->YRange() / canvasHeight;
+            float maxExpand = std::max(widthExpand, heightExpand);
+
+            canvasLB = glm::vec3(canvasCenter.x - (maxExpand * canvasWidth) / 2 * 1 / fitRatio, canvasCenter.y - (maxExpand * canvasHeight) / 2 * 1 / fitRatio,0.0f);
+            canvasRT = glm::vec3(canvasCenter.x + (maxExpand * canvasWidth) / 2 * 1 / fitRatio, canvasCenter.y + (maxExpand * canvasHeight) / 2 * 1 / fitRatio,0.0f);
+
+            canvasLB *= scale;
+            canvasRT *= scale;
+            canvasRange = new AABB(canvasLB,canvasRT);
+
+            glm::vec3 centerCanvas = canvasRange->Center();
+            glm::vec3 centerObj = objectRange->Center();
+            canvasRange->Translate(centerObj - centerCanvas);
+        }
+        else
+        {
+            objectRange = new AABB(glm::vec3(0.0f,0.0f,0.0f),glm::vec3(canvasWidth * fitRatio * scale,canvasHeight * fitRatio * scale,0.0f));
+            glm::vec3 canvasCenter = objectRange->Center();
+            glm::vec3 canvasLB = glm::vec3(canvasCenter.x - objectRange->XRange() / 2 * 1 / fitRatio, canvasCenter.x - objectRange->YRange() / 2 * 1 / fitRatio,0.0f);
+            glm::vec3 canvasRT = glm::vec3(canvasCenter.x + objectRange->XRange() / 2 * 1 / fitRatio, canvasCenter.y + objectRange->YRange() / 2 * 1 / fitRatio, 0.0f);
+            canvasLB *= scale;
+            canvasRT *= scale;
+            canvasRange = new AABB(canvasLB, canvasRT);
         }
 
         if(camera == nullptr)

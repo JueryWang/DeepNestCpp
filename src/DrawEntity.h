@@ -61,6 +61,7 @@ namespace DeepNestCpp
 
             glm::vec3 startProcessLocation;
             glm::mat4 transformMatrix;
+            glm::vec4 color = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
             glm::vec3 centroid;
             bool isSelected;
     };

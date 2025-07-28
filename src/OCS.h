@@ -24,7 +24,7 @@ namespace DeepNestCpp
 
             glm::vec2 GetOCSPosWithPixelPos(const glm::vec2 &pixelPos);
 
-        private:
+        public:
             int canvasWidth;
             int canvasHeight;
             std::vector<Entity*> entityReference;
@@ -41,5 +41,6 @@ namespace DeepNestCpp
             float YOffset;
             float XTickUnit;
             float YTickUnit;
+            bool genTickers = false;
     };
 }
