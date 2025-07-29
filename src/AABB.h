@@ -67,9 +67,11 @@ namespace DeepNestCpp
 
         void Multiply(float scale)
         {
-            min.x *= scale;
-            min.y *= scale;
-            min.z *= scale;
+            glm::vec3 center = Center();
+            float xRange = XRange() * scale;
+            float yRange = YRange() * scale;
+            min = center - glm::vec3(xRange / 2,yRange / 2, 0.0f);
+            max = center + glm::vec3(xRange / 2, yRange / 2, 0.0f);
         }
 
     public:

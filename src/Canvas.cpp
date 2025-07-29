@@ -103,7 +103,7 @@ namespace DeepNestCpp
                     QPoint offset = currentMousePos - lastMousePos;
 
                     lastMousePos = currentMousePos;
-                    ocsSys->OnMouseMove(glm::vec2(offset.x()*0.1f, offset.y()*0.1f));
+                    ocsSys->OnMouseMove(glm::vec2(-offset.x(), offset.y()));
                 }
                 break;
             }
@@ -112,7 +112,7 @@ namespace DeepNestCpp
                 if (!isDragging)
                 {
                     QWheelEvent* wheelEvent = static_cast<QWheelEvent*>(event);
-                    float delta = wheelEvent->angleDelta().y() * 0.1;
+                    float delta = wheelEvent->angleDelta().y() * 0.01;
                     lastMousePos = wheelEvent->position().toPoint();
 
                     ocsSys->OnMouseScroll(delta, glm::vec2(lastMousePos.x(),lastMousePos.y()));

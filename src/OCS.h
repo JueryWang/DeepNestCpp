@@ -36,7 +36,6 @@ namespace DeepNestCpp
 
             float scale = 1.0f;
             float zoomFactor = 1.149f;
-            glm::vec2 mouseHoverPosition;
             float XOffset;
             float YOffset;
             float XTickUnit;

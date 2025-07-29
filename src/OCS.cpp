@@ -144,7 +144,7 @@ namespace DeepNestCpp
 
     void OCS::OnMouseScroll(float delta,const glm::vec2 &mousePosition)
     {
-        glm::vec2 preOcsPos = GetOCSPosWithPixelPos(mouseHoverPosition);
+        glm::vec2 preOcsPos = GetOCSPosWithPixelPos(mousePosition);
         float scalar = delta > 0 ? zoomFactor : 1.0f / zoomFactor;
         glm::vec3 offset = glm::vec3(preOcsPos,0.0f) - canvasRange->Center();
         canvasRange->Translate(offset);

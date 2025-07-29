@@ -2,7 +2,6 @@
 #include "DrawEntity.h"
 #include "MathUtils.h"
 #include "Sketch.h"
-#include "test_creationclass.h"
 
 std::vector<glm::vec3> vertexs;
 std::vector<glm::vec3> splineControls;
@@ -232,7 +231,7 @@ namespace DeepNestCpp
 	{
 		DxfReader* dxfReader = new DxfReader(psketch);
 		DL_Dxf* dxf = new DL_Dxf();
-		if (!dxf->in("C:/Users/Administrator/Desktop/testDxf/abc (1).dxf", dxfReader))
+		if (!dxf->in(dxfFile, dxfReader))
 		{
 			return 1;
 		}

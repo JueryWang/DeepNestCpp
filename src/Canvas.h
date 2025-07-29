@@ -46,7 +46,7 @@ namespace DeepNestCpp
             std::vector<Entity*> entities;
             std::vector<EntCompound*> parts;
             bool firstResize;
-            bool isDragging;
+            bool isDragging = false;
             bool isMainCanvas;
     };
 }

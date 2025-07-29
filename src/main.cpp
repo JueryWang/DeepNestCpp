@@ -13,7 +13,7 @@ int main(int argc,char* argv[])
     
     std::shared_ptr<Sketch> sketch(new Sketch);
     DXFProcessor processor(sketch);
-    processor.read("E:/Repo/DeepNestCpp/build/Debug/Red-Bull-Black-Print.dxf");
+    processor.read("C:/Users/Administrator/Desktop/Red-Bull-Black-Print.dxf");
     int width = 1000;
     int height = 800;
     DeepNestCpp::Canvas* canvasMain = new DeepNestCpp::Canvas(sketch,1000,800,true);
