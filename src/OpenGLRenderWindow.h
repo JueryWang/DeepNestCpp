@@ -27,14 +27,14 @@ namespace DeepNestCpp
 
 		void Resize(const QSize& size);
 		GLWidget* GetReciverWidget() { return m_reciver; }
-		QSize inline GetSize() const { return QSize(); }
+		QSize inline GetSize() const { return QSize(m_width,m_height); }
 		int inline width() { return m_width; }
 		int inline height() { return m_height; }
 
 		QImage grabImage();
 
 	protected:
-		virtual void updateGL(Sketch* sketch) = 0;
+		virtual void updateGL() = 0;
 
 	private:
 		struct Deleter {

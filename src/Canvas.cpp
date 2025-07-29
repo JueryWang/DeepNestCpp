@@ -1,8 +1,9 @@
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include "Canvas.h"
 #include "OCS.h"
-#include "DrawEntity.h"
 #include "Sketch.h"
+#include "GLWidget.h"
+#include "DrawEntity.h"
 #include <Windows.h>
 #include <QMouseEvent>
 #include "../lib/OGL/GLFW/glfw3.h"
@@ -10,24 +11,24 @@
 namespace DeepNestCpp
 {
 
-    Canvas::Canvas(int width,int height, bool isMainCanvas) : OpenGLRenderWindow(width,height,""), isMainCanvas(isMainCanvas)
+    Canvas::Canvas(std::shared_ptr<Sketch> sketch,int width,int height, bool isMainCanvas) : OpenGLRenderWindow(width,height,""), isMainCanvas(isMainCanvas)
     {
         firstResize = true;
-        ocsSys = new OCS();
+        ocsSys = new OCS(sketch);
+        m_sketch = sketch;
         ocsSys->genTickers = isMainCanvas;
         ocsSys->canvasWidth = width;
         ocsSys->canvasHeight = height;
         UpdateOCS();
 
         this->Resize(QSize(width, height));
-        
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        Shader* Normal_Shader = new Shader("Shader/drawEntity.vert","Shader/drawEntity.frag", "Shader/addArrow.geom");
-        Shader* ShowArrow_Shader = new Shader("Shader/drawEntity.vert", "Shader/drawEntity.frag");
-        Shader* drawTicker_Shader = new Shader("Shader/drawTickText.vert", "Shader/drawTickText.frag");
+        Shader* Normal_Shader = new Shader("drawEntity.vert", "drawEntity.frag");
+        Shader* ShowArrow_Shader = new Shader("drawEntity.vert","drawEntity.frag", "addArrow.geom");
+        Shader* drawTicker_Shader = new Shader("drawTickText.vert", "drawTickText.frag");
         m_shaderMap[RenderMode::Normal] = Normal_Shader;
         m_shaderMap[RenderMode::ShowArrow] = ShowArrow_Shader;
         m_shaderMap[RenderMode::DrawTickers] = drawTicker_Shader;
@@ -35,7 +36,7 @@ namespace DeepNestCpp
 
     Canvas::~Canvas()
     {
-
+        m_sketch.reset();
     }
 
     void Canvas::AddEntity(Entity* ent)
@@ -45,7 +46,6 @@ namespace DeepNestCpp
 
     void Canvas::UpdateOCS()
     {
-        ocsSys->entityReference = this->entities;
         ocsSys->ComputeScaleFitToCanvas();
         if (isMainCanvas)
         {
@@ -55,6 +55,8 @@ namespace DeepNestCpp
 
     bool Canvas::eventFilter(QObject* obj, QEvent* event)
     {
+        GLWidget* glwgt = (GLWidget*)this->parent();
+        
         switch (event->type())
         {
             case QEvent::Resize:
@@ -119,16 +121,16 @@ namespace DeepNestCpp
             }
         }
 
-        return true;
+        return glwgt->eventFilter(obj,event);
     }
 
-    void Canvas::updateGL(Sketch* sketch)
+    void Canvas::updateGL()
     {
         GLFWwindow* windowInst = m_window.get();
         if (windowInst)
         {
             glfwMakeContextCurrent(windowInst);
-            glClearColor(0.95f, 0.95f, 0.95f, 1.0f);
+            glClearColor(0.00f, 0.00f, 0.00f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             Shader* shaderUsed = m_shaderMap[mode];
             shaderUsed->use();
@@ -140,7 +142,7 @@ namespace DeepNestCpp
             shaderUsed->setMat4("projection",ortho);
             shaderUsed->setMat4("view", view);
 
-            for (Entity* ent : entities)
+            for (Entity* ent : m_sketch.get()->entities)
             {
                 shaderUsed->setVec4("PaintColor",ent->color);
                 ent->Paint();

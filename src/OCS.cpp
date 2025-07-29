@@ -1,44 +1,19 @@
 #include "OCS.h"
 #include "AABB.h"
 #include "MathUtils.h"
+#include "Sketch.h"
 #include <cmath>
 
 namespace DeepNestCpp
 {
-    OCS::OCS()
+    OCS::OCS(std::shared_ptr<Sketch> sketch) : sketch(sketch)
     {
         
     }
     OCS::~OCS()
     {
+        sketch.reset();
         delete camera;
-    }
-
-    void OCS::addEntity(Entity* ent)
-    {
-        if(objectRange == nullptr)
-        {
-            objectRange = ent->bbox;
-        }
-        else
-        {
-            objectRange->Union(ent->bbox);
-        }
-
-        auto find = std::find(entityReference.begin(),entityReference.end(),ent);
-        if(find == entityReference.end())
-        {
-            entityReference.push_back(ent);
-        }
-    }
-    
-    void OCS::deleteEntity(Entity* ent)
-    {
-        auto find = std::find(entityReference.begin(),entityReference.end(),ent);
-        if(find != entityReference.end())
-        {
-            entityReference.erase(find);
-        }
     }
 
     void OCS::SetCanvasSizae(int width, int height)
@@ -50,13 +25,13 @@ namespace DeepNestCpp
     void OCS::ComputeScaleFitToCanvas()
     {
         float fitRatio = 1.0f/2.0f;
-        if(entityReference.size() > 0)
+        if(sketch && sketch->entities.size()> 0)
         {
-            objectRange = new AABB(entityReference[0]->bbox);
+            objectRange = new AABB((sketch->entities[0]->bbox));
 
-            for (int i = 1; i < entityReference.size(); i++)
+            for (int i = 1; i < sketch->entities.size(); i++)
             {
-                objectRange->Union(entityReference[i]->bbox);
+                objectRange->Union(sketch->entities[i]->bbox);
             }
 
             glm::vec3 canvasCenter = objectRange->Center();

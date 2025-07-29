@@ -50,8 +50,8 @@ namespace DeepNestCpp
             
         protected:
             static long counter;
-            GLuint vao;
-            GLuint vbo;
+            GLuint vao = 0;
+            GLuint vbo = 0;
         public:
             AABB* bbox;
             std::vector<float> jointPoints;

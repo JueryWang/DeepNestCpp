@@ -13,21 +13,23 @@ namespace DeepNestCpp
 {
     class Entity;
     class OCS;
+    class GLWidget;
+    class Sketch;
 
     class Canvas : public OpenGLRenderWindow
     {
         friend class Sketch;
         public:
-            Canvas(int width,int height,bool isMainCanvas);
+            Canvas(std::shared_ptr<Sketch> sketch,int width,int height,bool isMainCanvas);
             ~Canvas();
             
             void AddEntity(Entity* ent);
             void UpdateOCS();
             void SetRenderMode(RenderMode mode) { this->mode = mode; }
-
+            
         protected:
             virtual bool eventFilter(QObject* obj, QEvent* event) override;
-            virtual void updateGL(Sketch* sketch) override;
+            virtual void updateGL() override;
 
         private: 
             void DrawTickers();
@@ -36,6 +38,8 @@ namespace DeepNestCpp
             RenderMode mode = RenderMode::Normal;
 
             OCS* ocsSys = nullptr;
+            std::shared_ptr<Sketch> m_sketch;
+
             QPoint lastMousePos;
             std::vector<Polyline2D*> envolopCurve;
             std::vector<Entity*> auxiliary;

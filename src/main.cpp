@@ -1,4 +1,6 @@
 #include <QApplication>
+#include "Sketch.h"
+#include "DxfReader.h"
 #include "OpenGLContext.h"
 #include "GLWidget.h"
 #include "Canvas.h"
@@ -9,9 +11,12 @@ int main(int argc,char* argv[])
     QApplication app(argc, argv);
     DeepNestCpp::InitializeOpenGL();
     
+    std::shared_ptr<Sketch> sketch(new Sketch);
+    DXFProcessor processor(sketch);
+    processor.read("E:/Repo/DeepNestCpp/build/Debug/Red-Bull-Black-Print.dxf");
     int width = 1000;
     int height = 800;
-    DeepNestCpp::Canvas* canvasMain = new DeepNestCpp::Canvas(1000,800,true);
+    DeepNestCpp::Canvas* canvasMain = new DeepNestCpp::Canvas(sketch,1000,800,true);
     GLWidget* glWidget = new GLWidget(canvasMain, nullptr, DYNAMIC_DRAW);
     glWidget->show();
 

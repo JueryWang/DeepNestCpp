@@ -26,7 +26,7 @@ namespace DeepNestCpp
 	}
 	void Point2D::Paint()
 	{
-		if(vao < 0 || vbo < 0)
+		if(vao == 0 || vbo == 0)
 		{
 			glGenVertexArrays(1, &vao);
 			glBindVertexArray(vao);
@@ -105,7 +105,7 @@ namespace DeepNestCpp
 	}
 	void Line2D::Paint()
 	{
-		if (vao < 0 || vbo < 0)
+		if (vao == 0 || vbo == 0)
 		{
 			glGenVertexArrays(1, &vao);
 			glBindVertexArray(vao);
@@ -239,7 +239,7 @@ namespace DeepNestCpp
 
 	void Arc2D::Paint()
 	{
-		if (vao < 0 || vbo < 0)
+		if (vao == 0 || vbo == 0)
 		{
 			glGenBuffers(1, &vao);
 			glBindVertexArray(vao);
@@ -383,7 +383,7 @@ namespace DeepNestCpp
 
 	void Circle2D::Paint()
 	{
-		if (vao < 0 || vbo < 0)
+		if (vao == 0 || vbo == 0)
 		{
 			glGenVertexArrays(1, &vao);
 			glBindVertexArray(vao);
@@ -566,7 +566,7 @@ namespace DeepNestCpp
 	}
 	void Polyline2D::Paint()
 	{
-		if (vao < 0 || vbo < 0)
+		if (vao == 0 || vbo == 0)
 		{
 			glGenVertexArrays(1, &vao);
 			glBindVertexArray(vao);
@@ -706,7 +706,7 @@ namespace DeepNestCpp
 	}
 	void Spline2D::Paint()
 	{
-		if (vao < 0 || vbo < 0)
+		if (vao == 0 || vbo == 0)
 		{
 			glGenVertexArrays(1, &vao);
 			glBindVertexArray(vao);

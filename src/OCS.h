@@ -7,13 +7,13 @@
 namespace DeepNestCpp
 {
     class AABB;
+    class Sketch;
+
     class OCS
     {
         public:
-            OCS();
+            OCS(std::shared_ptr<Sketch> SK);
             ~OCS();
-            void addEntity(Entity* ent);
-            void deleteEntity(Entity* ent);
 
             void SetCanvasSizae(int width, int height);
             void ComputeScaleFitToCanvas();
@@ -27,9 +27,9 @@ namespace DeepNestCpp
         public:
             int canvasWidth;
             int canvasHeight;
-            std::vector<Entity*> entityReference;
             std::vector<AxisTicker> tickers;
 
+            std::shared_ptr<Sketch> sketch;
             AABB* objectRange = nullptr;
             AABB* canvasRange = nullptr;
             Camera2D* camera = nullptr;

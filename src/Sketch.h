@@ -12,6 +12,8 @@ namespace DeepNestCpp
 
 	class Sketch
 	{
+		friend class OCS;
+		friend class Canvas;
 	public:
 		Sketch();
 		~Sketch();

@@ -12,23 +12,21 @@ namespace DeepNestCpp
 	GLWidget::GLWidget(OpenGLRenderWindow* glwindow, Sketch* sketch, WindowState state)
 	{
 		m_context = new OpenGLWindowContext(glwindow, state);
+		glwindow->setParent(this);
 		this->setMouseTracking(true);
 
-		m_sketch.reset(sketch);
 		this->resize(m_context->window->GetSize());
 		m_context->window->SetReciverWidget(this);
 
 		connect(&m_updateTimer, &QTimer::timeout, this, &GLWidget::update);
 		this->resize(glwindow->GetSize());
 		this->update();
-		this->repaint();
 
 		this->installEventFilter(m_context->window);
 	}
 	GLWidget::~GLWidget()
 	{
 		delete m_context;
-		m_sketch.reset();
 	}
 
 	void GLWidget::SetWindowStatus(WindowState state)
@@ -48,14 +46,14 @@ namespace DeepNestCpp
 		{
 			for (int i = 0; i < 2; i++)
 			{
-				m_context->window->updateGL(m_sketch.get());
+				m_context->window->updateGL();
 			}
 		}
 		if (m_context->state == DYNAMIC_DRAW)
 		{
 			m_updateTimer.start(16);
-			m_context->window->updateGL(m_sketch.get());
-			QMetaObject::invokeMethod(this, "repaint", Qt::QueuedConnection);
+			m_context->window->updateGL();
+			QMetaObject::invokeMethod(this, "repaint");
 		}
 	}
 

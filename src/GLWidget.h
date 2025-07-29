@@ -9,8 +9,6 @@
 
 namespace DeepNestCpp
 {
-	class Sketch;
-
 	class GLWidget : public QWidget
 	{
 		Q_OBJECT
@@ -19,7 +17,6 @@ namespace DeepNestCpp
 		~GLWidget();
 
 		void SetWindowStatus(WindowState state);
-		Sketch* GetSketch() { return m_sketch.get(); }
 		OpenGLWindowContext* GetContet() { return m_context; }
 
 		void update();
@@ -29,7 +26,6 @@ namespace DeepNestCpp
 
 	private:
 		OpenGLWindowContext* m_context;
-		std::shared_ptr<Sketch> m_sketch;
 
 		QTimer m_updateTimer;
 

@@ -10,5 +10,7 @@ namespace DeepNestCpp
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 		glfwWindowHint(GLFW_SAMPLES, 4);
 		glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+		//glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
+		glfwSwapInterval(1);
 	}
 }
